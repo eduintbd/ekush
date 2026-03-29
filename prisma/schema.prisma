@@ -1,0 +1,568 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ─── Auth & Identity ─────────────────────────────────────────────
+// UserRole: INVESTOR, ADMIN, MANAGER, COMPLIANCE, SUPPORT, SUPER_ADMIN
+// UserStatus: PENDING, ACTIVE, SUSPENDED, CLOSED
+
+model User {
+  id               String   @id @default(cuid())
+  email            String?  @unique
+  phone            String?  @unique
+  passwordHash     String
+  role             String   @default("INVESTOR")
+  status           String   @default("PENDING")
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret  String?
+  failedLoginCount Int      @default(0)
+  lockedUntil      DateTime?
+  lastLoginAt      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  investor      Investor?
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  sessions      Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// ─── Investor ────────────────────────────────────────────────────
+// InvestorType: INDIVIDUAL, COMPANY_ORGANIZATION, MUTUAL_FUND, PROVIDENT_FUND, GRATUITY_FUND
+
+model Investor {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  investorCode String   @unique
+  name         String
+  title        String?
+  investorType String   @default("INDIVIDUAL")
+  nidNumber    String?
+  tinNumber    String?
+  dateOfBirth  DateTime?
+  address      String?
+  riskProfile  String?
+  boId         String?
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  holdings        FundHolding[]
+  transactions    Transaction[]
+  dividends       Dividend[]
+  taxCertificates TaxCertificate[]
+  kycRecords      KycRecord[]
+  bankAccounts    BankAccount[]
+  nominees        Nominee[]
+  consents        Consent[]
+  documents       Document[]
+  serviceRequests ServiceRequest[]
+  sipPlans        SipPlan[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("investors")
+}
+
+// ─── Fund ────────────────────────────────────────────────────────
+
+model Fund {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  name          String
+  fundType      String?
+  description   String?
+  objective     String?
+  inceptionDate DateTime?
+  currentNav    Float     @default(0)
+  previousNav   Float     @default(0)
+  totalAum      Float     @default(0)
+  totalUnits    Float     @default(0)
+  faceValue     Float     @default(10)
+
+  managementFeeRate Float @default(0)
+  trusteeFeeRate    Float @default(0)
+  custodianFeeRate  Float @default(0)
+  entryLoad         Float @default(0)
+  exitLoad          Float @default(0)
+  minInvestment     Float @default(0)
+  minSipAmount      Float @default(0)
+
+  holdings            FundHolding[]
+  transactions        Transaction[]
+  navRecords          NavRecord[]
+  dividends           Dividend[]
+  taxCertificates     TaxCertificate[]
+  financialStatements FinancialStatement[]
+  fundExpenses        FundExpense[]
+  sipPlans            SipPlan[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("funds")
+}
+
+// ─── Fund Holding (per investor per fund) ────────────────────────
+
+model FundHolding {
+  id         String @id @default(cuid())
+  investorId String
+  fundId     String
+
+  // Lump Sum fields
+  lsUnitsBought      Float @default(0)
+  lsUnitsSold        Float @default(0)
+  lsCurrentUnits     Float @default(0)
+  lsCostValue        Float @default(0)
+  lsCostOfUnitsSold  Float @default(0)
+  lsCostValueCurrent Float @default(0)
+  lsRealizedGain     Float @default(0)
+  lsWeight           Float @default(0)
+  lsAvgCost          Float @default(0)
+  lsMarketValue      Float @default(0)
+
+  // SIP fields
+  sipUnitsBought      Float @default(0)
+  sipUnitsSold        Float @default(0)
+  sipCurrentUnits     Float @default(0)
+  sipCostValue        Float @default(0)
+  sipCostOfUnitsSold  Float @default(0)
+  sipCostValueCurrent Float @default(0)
+  sipRealizedGain     Float @default(0)
+  sipWeight           Float @default(0)
+  sipAvgCost          Float @default(0)
+  sipMarketValue      Float @default(0)
+
+  // Consolidated
+  totalUnitsBought      Float @default(0)
+  totalUnitsSold        Float @default(0)
+  boOpeningBalance      Float @default(0)
+  totalCurrentUnits     Float @default(0)
+  totalCostValueCurrent Float @default(0)
+  avgCost               Float @default(0)
+  nav                   Float @default(0)
+  totalMarketValue      Float @default(0)
+  totalSellableUnits    Float @default(0)
+  marketValueSellable   Float @default(0)
+  totalRealizedGain     Float @default(0)
+  totalUnrealizedGain   Float @default(0)
+  percentUnitsHold      Float @default(0)
+
+  // Gross Dividend (from simpler fund files)
+  grossDividend Float @default(0)
+
+  investor Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  fund     Fund     @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([investorId, fundId])
+  @@map("fund_holdings")
+}
+
+// ─── Transaction ─────────────────────────────────────────────────
+// Channel: LS, SIP
+// Direction: BUY, SELL
+// Status: PENDING, IN_PROCESS, EXECUTED, REJECTED
+
+model Transaction {
+  id              String   @id @default(cuid())
+  investorId      String
+  fundId          String
+  channel         String   // LS or SIP
+  direction       String   // BUY or SELL
+  amount          Float    @default(0)
+  nav             Float    @default(0)
+  units           Float    @default(0)
+  cumulativeUnits Float    @default(0)
+  unitCapital     Float    @default(0)
+  unitPremium     Float    @default(0)
+  avgCostAtTime   Float    @default(0)
+  realizedGain    Float    @default(0)
+  costOfUnitsSold Float    @default(0)
+  uniqueCode      String?
+  orderDate       DateTime
+  status          String   @default("EXECUTED")
+  paymentMethod   String?
+  paymentRef      String?
+  notes           String?
+
+  investor Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  fund     Fund     @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([investorId, fundId])
+  @@index([orderDate])
+  @@map("transactions")
+}
+
+// ─── NAV Record ──────────────────────────────────────────────────
+
+model NavRecord {
+  id     String   @id @default(cuid())
+  fundId String
+  date   DateTime
+  nav    Float
+
+  fund Fund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  @@unique([fundId, date])
+  @@map("nav_records")
+}
+
+// ─── Dividend ────────────────────────────────────────────────────
+// DividendOption: CASH, CIP
+
+model Dividend {
+  id              String    @id @default(cuid())
+  investorId      String
+  fundId          String
+  accountingYear  String?
+  paymentDate     DateTime?
+  totalUnits      Float     @default(0)
+  dividendPerUnit Float     @default(0)
+  grossDividend   Float     @default(0)
+  taxRate         Float     @default(0)
+  taxAmount       Float     @default(0)
+  netDividend     Float     @default(0)
+  dividendOption  String    @default("CASH")
+  tinNumber       String?
+
+  investor Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  fund     Fund     @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([investorId, fundId])
+  @@map("dividends")
+}
+
+// ─── Tax Certificate ─────────────────────────────────────────────
+
+model TaxCertificate {
+  id         String @id @default(cuid())
+  investorId String
+  fundId     String
+
+  periodStart DateTime?
+  periodEnd   DateTime?
+
+  beginningUnits          Float @default(0)
+  beginningCostValue      Float @default(0)
+  beginningMarketValue    Float @default(0)
+  beginningUnrealizedGain Float @default(0)
+
+  endingUnits          Float @default(0)
+  endingCostValue      Float @default(0)
+  endingMarketValue    Float @default(0)
+  endingUnrealizedGain Float @default(0)
+
+  totalUnitsAdded       Float @default(0)
+  totalAdditionAtCost   Float @default(0)
+  totalUnitsRedeemed    Float @default(0)
+  totalRedemptionAtCost Float @default(0)
+  netInvestment         Float @default(0)
+  totalRealizedGain     Float @default(0)
+  totalGrossDividend    Float @default(0)
+  totalTax              Float @default(0)
+  totalNetDividend      Float @default(0)
+  navAtEnd              Float @default(0)
+
+  investor Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  fund     Fund     @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([investorId, fundId])
+  @@map("tax_certificates")
+}
+
+// ─── Financial Statement ─────────────────────────────────────────
+
+model FinancialStatement {
+  id          String    @id @default(cuid())
+  fundId      String
+  type        String    // BS, IS, CF, EQUITY
+  periodStart DateTime?
+  periodEnd   DateTime?
+  data        String    // JSON stored as text (SQLite doesn't support Json)
+
+  fund Fund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("financial_statements")
+}
+
+// ─── Fund Expense ────────────────────────────────────────────────
+
+model FundExpense {
+  id            String    @id @default(cuid())
+  fundId        String
+  periodStart   DateTime?
+  periodEnd     DateTime?
+  managementFee Float     @default(0)
+  trusteeFee    Float     @default(0)
+  custodianFee  Float     @default(0)
+  auditFee      Float     @default(0)
+  bsecFee       Float     @default(0)
+  cdblCharges   Float     @default(0)
+  brokerageComm Float     @default(0)
+  bankCharges   Float     @default(0)
+  totalExpenses Float     @default(0)
+
+  fund Fund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("fund_expenses")
+}
+
+// ─── KYC ─────────────────────────────────────────────────────────
+// KycType: NID, PASSPORT, SELFIE, TIN, AML_CHECK
+// KycStatus: PENDING, VERIFIED, REJECTED, EXPIRED
+
+model KycRecord {
+  id              String    @id @default(cuid())
+  investorId      String
+  type            String
+  status          String    @default("PENDING")
+  documentUrl     String?
+  selfieUrl       String?
+  matchScore      Float?
+  verifiedBy      String?
+  rejectionReason String?
+  expiresAt       DateTime?
+
+  investor Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("kyc_records")
+}
+
+// ─── Bank Account ────────────────────────────────────────────────
+
+model BankAccount {
+  id            String  @id @default(cuid())
+  investorId    String
+  bankName      String
+  branchName    String?
+  accountNumber String
+  routingNumber String?
+  isPrimary     Boolean @default(false)
+
+  investor Investor  @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  sipPlans SipPlan[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("bank_accounts")
+}
+
+// ─── Nominee ─────────────────────────────────────────────────────
+
+model Nominee {
+  id           String  @id @default(cuid())
+  investorId   String
+  name         String
+  relationship String?
+  nidNumber    String?
+  share        Float   @default(100)
+  isMinor      Boolean @default(false)
+
+  investor Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("nominees")
+}
+
+// ─── Consent ─────────────────────────────────────────────────────
+
+model Consent {
+  id         String    @id @default(cuid())
+  investorId String
+  type       String
+  grantedAt  DateTime  @default(now())
+  revokedAt  DateTime?
+  ipAddress  String?
+
+  investor Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+
+  @@map("consents")
+}
+
+// ─── SIP Plan ────────────────────────────────────────────────────
+// SipStatus: ACTIVE, PAUSED, CANCELLED
+
+model SipPlan {
+  id            String    @id @default(cuid())
+  investorId    String
+  fundId        String
+  bankAccountId String?
+  amount        Float
+  frequency     String    @default("MONTHLY")
+  debitDay      Int       @default(10)
+  startDate     DateTime
+  endDate       DateTime?
+  status        String    @default("ACTIVE")
+
+  investor    Investor     @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  fund        Fund         @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  bankAccount BankAccount? @relation(fields: [bankAccountId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sip_plans")
+}
+
+// ─── Service Request / Ticketing ─────────────────────────────────
+
+model ServiceRequest {
+  id             String    @id @default(cuid())
+  investorId     String
+  type           String
+  status         String    @default("OPEN")
+  description    String?
+  trackingNumber String    @unique
+  slaDeadline    DateTime?
+
+  investor Investor        @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  comments TicketComment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("service_requests")
+}
+
+model TicketComment {
+  id               String @id @default(cuid())
+  serviceRequestId String
+  authorId         String
+  content          String
+  attachmentUrl    String?
+
+  serviceRequest ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("ticket_comments")
+}
+
+// ─── Notification ────────────────────────────────────────────────
+
+model Notification {
+  id      String  @id @default(cuid())
+  userId  String
+  type    String
+  title   String
+  message String
+  isRead  Boolean @default(false)
+  link    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+// ─── Approval Queue (Maker-Checker) ─────────────────────────────
+// ApprovalStatus: PENDING, APPROVED, REJECTED
+
+model ApprovalQueue {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  makerId    String
+  checkerId  String?
+  status     String   @default("PENDING")
+  notes      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("approval_queue")
+}
+
+// ─── Audit Log ───────────────────────────────────────────────────
+
+model AuditLog {
+  id        String  @id @default(cuid())
+  userId    String
+  action    String
+  entity    String
+  entityId  String?
+  oldValue  String? // JSON as text
+  newValue  String? // JSON as text
+  ipAddress String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─── Document Vault ──────────────────────────────────────────────
+
+model Document {
+  id         String @id @default(cuid())
+  investorId String
+  type       String
+  fileName   String
+  filePath   String
+  mimeType   String?
+
+  investor Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("documents")
+}
+
+// ─── Market Commentary (CMS) ─────────────────────────────────────
+
+model MarketCommentary {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String
+  category    String?
+  publishedAt DateTime?
+  authorId    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("market_commentaries")
+}
