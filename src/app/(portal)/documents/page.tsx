@@ -1,5 +1,6 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
+
+
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +26,7 @@ const typeLabels: Record<string, string> = {
 };
 
 export default async function DocumentsPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const investorId = (session?.user as any)?.investorId;
 
   if (!investorId) {

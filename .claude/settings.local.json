@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(netstat -ano)",
+      "Read(//c/Users/USER/Ekush_CRM/**)",
+      "Bash(taskkill //PID 7452 //F)",
+      "Bash(npm run:*)"
+    ]
+  }
+}

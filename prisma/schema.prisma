@@ -17,6 +17,7 @@ model User {
   email            String?  @unique
   phone            String?  @unique
   passwordHash     String
+  supabaseId       String?  @unique
   role             String   @default("INVESTOR")
   status           String   @default("PENDING")
   twoFactorEnabled Boolean  @default(false)

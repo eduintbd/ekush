@@ -1,5 +1,4 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -11,16 +10,7 @@ async function getFunds() {
 }
 
 export default async function DashboardPage() {
-  let session;
-  try {
-    session = await getServerSession(authOptions);
-  } catch {
-    return (
-      <div className="text-center py-20 text-text-body">
-        <p>Session error. Please <a href="/login" className="text-ekush-orange underline">login again</a>.</p>
-      </div>
-    );
-  }
+  const session = await getSession();
 
   const funds = await getFunds();
 

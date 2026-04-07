@@ -1,5 +1,6 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
+
+
 import { prisma } from "@/lib/prisma";
 import { formatBDT, formatNumber, formatDate } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,7 +24,7 @@ export default async function TransactionsPage({
 }: {
   searchParams: { page?: string };
 }) {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const investorId = (session?.user as any)?.investorId;
 
   if (!investorId) {

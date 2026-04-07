@@ -1,33 +1,52 @@
-import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const path = req.nextUrl.pathname;
+export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request });
 
-    // Admin routes - check for admin roles
-    if (path.startsWith("/admin")) {
-      const adminRoles = ["ADMIN", "MANAGER", "COMPLIANCE", "SUPPORT", "SUPER_ADMIN"];
-      if (!token?.role || !adminRoles.includes(token.role as string)) {
-        return NextResponse.redirect(new URL("/dashboard", req.url));
-      }
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          supabaseResponse = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
+        },
+      },
     }
+  );
 
-    // KYC onboarding redirect disabled for development
-    // Uncomment below for production:
-    // if (token?.status === "PENDING" && !path.startsWith("/onboarding") && !path.startsWith("/api")) {
-    //   return NextResponse.redirect(new URL("/onboarding", req.url));
-    // }
+  // Refresh session — IMPORTANT: do not remove
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => !!token,
-    },
+  const path = request.nextUrl.pathname;
+
+  if (!user) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
-);
+
+  // Admin routes — check role from user_metadata
+  if (path.startsWith("/admin")) {
+    const role = (user.user_metadata?.role as string) ?? "";
+    const adminRoles = ["ADMIN", "MANAGER", "COMPLIANCE", "SUPPORT", "SUPER_ADMIN"];
+    if (!adminRoles.includes(role)) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+  }
+
+  return supabaseResponse;
+}
 
 export const config = {
   matcher: [

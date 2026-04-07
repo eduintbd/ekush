@@ -1,8 +1,8 @@
 "use client";
 
-import { signOut } from "next-auth/react";
 import { LogOut, User } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface TopBarProps {
   userName?: string;
@@ -11,7 +11,14 @@ interface TopBarProps {
 }
 
 export function TopBar({ userName, investorCode, userImage }: TopBarProps) {
+  const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
+
+  const handleSignOut = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  };
 
   return (
     <header className="sticky top-0 z-30 bg-white px-6 py-3">
@@ -46,7 +53,7 @@ export function TopBar({ userName, investorCode, userImage }: TopBarProps) {
                   )}
                 </div>
                 <button
-                  onClick={() => signOut({ callbackUrl: "/login" })}
+                  onClick={handleSignOut}
                   className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-white/80 hover:text-white rounded transition-colors"
                 >
                   <LogOut className="w-4 h-4" />

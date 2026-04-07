@@ -1,6 +1,5 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/topbar";
 import { AuthProvider } from "@/components/layout/session-provider";
@@ -10,18 +9,13 @@ export default async function PortalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let session;
-  try {
-    session = await getServerSession(authOptions);
-  } catch (e) {
-    redirect("/login");
-  }
+  const session = await getSession();
 
   if (!session) {
     redirect("/login");
   }
 
-  const user = session.user as any;
+  const user = session.user;
 
   return (
     <AuthProvider>

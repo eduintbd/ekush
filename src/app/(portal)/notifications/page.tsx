@@ -1,5 +1,6 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
+
+
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,7 @@ import { BellOff } from "lucide-react";
 import { MarkAllReadButton, MarkReadButton } from "@/components/notifications/notification-actions";
 
 export default async function NotificationsPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const userId = (session?.user as any)?.id;
 
   if (!userId) {

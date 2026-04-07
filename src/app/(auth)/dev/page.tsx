@@ -1,6 +1,5 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -50,17 +49,18 @@ export default function DevLoginPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  const handleQuickLogin = async (account: typeof DEV_ACCOUNTS[0]) => {
+  const handleQuickLogin = async (account: (typeof DEV_ACCOUNTS)[0]) => {
     setLoading(account.login);
     setError("");
     try {
-      const result = await signIn("credentials", {
-        login: account.login,
-        password: account.password,
-        redirect: false,
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ login: account.login, password: account.password }),
       });
-      if (result?.error) {
-        setError(`Failed: ${result.error}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(`Failed: ${data.error ?? "Unknown error"}`);
       } else {
         router.push(account.redirect);
         router.refresh();
@@ -107,7 +107,9 @@ export default function DevLoginPage() {
               >
                 <CardContent className="p-5">
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 bg-gradient-to-r ${account.color} rounded-[12px] flex items-center justify-center shrink-0 shadow-md`}>
+                    <div
+                      className={`w-12 h-12 bg-gradient-to-r ${account.color} rounded-[12px] flex items-center justify-center shrink-0 shadow-md`}
+                    >
                       {isLoading ? (
                         <Loader2 className="w-5 h-5 text-white animate-spin" />
                       ) : (
@@ -118,7 +120,9 @@ export default function DevLoginPage() {
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-[#333] text-[15px]">{account.label}</h3>
                         {account.label === "Admin" && (
-                          <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-semibold">SUPER_ADMIN</span>
+                          <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-semibold">
+                            SUPER_ADMIN
+                          </span>
                         )}
                       </div>
                       <p className="text-[13px] text-[#6c757d] mt-0.5">{account.description}</p>
@@ -140,7 +144,10 @@ export default function DevLoginPage() {
           <p className="text-[12px] text-[#999]">
             This page is for development only. Remove before production deployment.
           </p>
-          <a href="/login" className="text-[13px] text-[#F27023] hover:underline mt-2 inline-block font-medium">
+          <a
+            href="/login"
+            className="text-[13px] text-[#F27023] hover:underline mt-2 inline-block font-medium"
+          >
             Go to regular login page
           </a>
         </div>
