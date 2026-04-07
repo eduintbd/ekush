@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { uploadFile } from "@/lib/upload";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -52,16 +51,14 @@ export async function POST(req: NextRequest) {
   const unitCapital = units * 10; // face value
   const unitPremium = amount - unitCapital;
 
-  // Persist payment slip to local uploads dir (same pattern as /api/documents)
+  // Persist payment slip via Vercel Blob (or local FS in dev)
   let paymentRef: string | null = null;
   if (paymentSlip && paymentSlip.size > 0) {
-    const uploadDir = path.join(process.cwd(), "uploads", investorId, "payment-slips");
-    await mkdir(uploadDir, { recursive: true });
-    const fileName = `${Date.now()}_${paymentSlip.name.replace(/[^\w.\-]/g, "_")}`;
-    const filePath = path.join(uploadDir, fileName);
-    const bytes = await paymentSlip.arrayBuffer();
-    await writeFile(filePath, Buffer.from(bytes));
-    paymentRef = `uploads/${investorId}/payment-slips/${fileName}`;
+    const safeName = paymentSlip.name.replace(/[^\w.\-]/g, "_");
+    paymentRef = await uploadFile(
+      paymentSlip,
+      `${investorId}/payment-slips/${Date.now()}_${safeName}`
+    );
   }
 
   // Create pending transaction

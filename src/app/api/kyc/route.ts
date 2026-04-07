@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { uploadFile } from "@/lib/upload";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -39,26 +38,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "KYC type required" }, { status: 400 });
   }
 
-  const uploadDir = path.join(process.cwd(), "uploads", "kyc", investorId);
-  await mkdir(uploadDir, { recursive: true });
-
   let documentUrl: string | null = null;
   let selfieUrl: string | null = null;
 
-  if (file) {
-    const fileName = `${type}_${Date.now()}_${file.name}`;
-    const filePath = path.join(uploadDir, fileName);
-    const bytes = await file.arrayBuffer();
-    await writeFile(filePath, Buffer.from(bytes));
-    documentUrl = `uploads/kyc/${investorId}/${fileName}`;
+  if (file && file.size > 0) {
+    const safeName = file.name.replace(/[^\w.\-]/g, "_");
+    documentUrl = await uploadFile(
+      file,
+      `kyc/${investorId}/${type}_${Date.now()}_${safeName}`
+    );
   }
 
-  if (selfie) {
-    const fileName = `selfie_${Date.now()}_${selfie.name}`;
-    const filePath = path.join(uploadDir, fileName);
-    const bytes = await selfie.arrayBuffer();
-    await writeFile(filePath, Buffer.from(bytes));
-    selfieUrl = `uploads/kyc/${investorId}/${fileName}`;
+  if (selfie && selfie.size > 0) {
+    const safeName = selfie.name.replace(/[^\w.\-]/g, "_");
+    selfieUrl = await uploadFile(
+      selfie,
+      `kyc/${investorId}/selfie_${Date.now()}_${safeName}`
+    );
   }
 
   // Create KYC record and notification in parallel
