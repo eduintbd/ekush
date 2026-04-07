@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StepIndicator } from "@/components/ui/step-indicator";
-import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle, Copy, Check, Upload } from "lucide-react";
 
 interface Fund { code: string; name: string; currentNav: number; }
 
@@ -19,7 +19,23 @@ export default function BuyPage() {
   const [selectedFund, setSelectedFund] = useState("");
   const [amount, setAmount] = useState("");
   const [dividendOption, setDividendOption] = useState("CIP");
+  const [paymentSlip, setPaymentSlip] = useState<File | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const copyToClipboard = (value: string, field: string) => {
+    navigator.clipboard.writeText(value);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 1500);
+  };
+
+  const BANK_DETAILS = {
+    accountName: "Ekush Stable Return Fund",
+    accountNo: "2055604070001",
+    bankName: "BRAC Bank Limited",
+    branchName: "R K Mission Road",
+    routingNo: "060272531",
+  };
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState("");
 
@@ -161,22 +177,61 @@ export default function BuyPage() {
       {step === 1 && (
         <Card>
           <CardContent className="p-8">
-            <h2 className="text-[16px] font-semibold text-text-dark font-rajdhani mb-6">Payment Method</h2>
-            <div className="space-y-4">
-              <div className="p-4 border border-ekush-orange bg-ekush-orange/5 rounded-[10px] flex items-center gap-3">
-                <div className="w-4 h-4 rounded-full border-2 border-ekush-orange flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-ekush-orange" />
+            <h2 className="text-[16px] font-semibold text-text-dark font-rajdhani mb-2">Payment</h2>
+            <p className="text-[14px] text-text-body mb-6">
+              Deposit your investment amount to the following bank account of {fund?.name || "the fund"}.
+            </p>
+
+            {/* Bank details box */}
+            <div className="border border-input-border rounded-[10px] p-5 space-y-3 mb-6">
+              {[
+                { label: "Bank Account Name", value: BANK_DETAILS.accountName, key: "name" },
+                { label: "Account No", value: BANK_DETAILS.accountNo, key: "acc" },
+                { label: "Bank Name", value: BANK_DETAILS.bankName, key: "bank" },
+                { label: "Branch Name", value: BANK_DETAILS.branchName, key: "branch" },
+                { label: "Routing No", value: BANK_DETAILS.routingNo, key: "routing" },
+              ].map((row) => (
+                <div key={row.key} className="flex items-center gap-2 text-[14px]">
+                  <span className="text-text-body">{row.label}:</span>
+                  <span className="text-text-dark font-semibold">{row.value}</span>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(row.value, row.key)}
+                    className="ml-1 p-1 rounded hover:bg-page-bg transition-colors"
+                    aria-label={`Copy ${row.label}`}
+                  >
+                    {copiedField === row.key ? (
+                      <Check className="w-3.5 h-3.5 text-green-500" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 text-text-body" />
+                    )}
+                  </button>
                 </div>
-                <span className="text-[14px] text-text-dark font-medium">Bank Transfer</span>
-              </div>
-              <div className="p-4 border border-input-border rounded-[10px] flex items-center gap-3 opacity-50">
-                <div className="w-4 h-4 rounded-full border-2 border-input-border" />
-                <span className="text-[14px] text-text-body">Cheque</span>
-              </div>
+              ))}
             </div>
+
+            {/* File upload */}
+            <div className="space-y-2">
+              <label className="text-[14px] font-medium text-text-label block">
+                Please upload your payment confirmation/ acknowledgement receipt / cheque deposit slip to activate your investment
+              </label>
+              <label className="flex items-center gap-3 h-[50px] rounded-[5px] border border-input-border bg-input-bg px-5 cursor-pointer hover:border-ekush-orange transition-colors">
+                <Upload className="w-4 h-4 text-ekush-orange" />
+                <span className="text-[14px] text-text-body">
+                  {paymentSlip ? paymentSlip.name : "Choose file..."}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className="hidden"
+                  onChange={(e) => setPaymentSlip(e.target.files?.[0] ?? null)}
+                />
+              </label>
+            </div>
+
             <div className="mt-8 flex justify-between">
               <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
-              <Button onClick={() => setStep(2)}>Next Step</Button>
+              <Button onClick={() => setStep(2)} disabled={!paymentSlip}>Next Step</Button>
             </div>
           </CardContent>
         </Card>
