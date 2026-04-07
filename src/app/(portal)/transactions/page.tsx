@@ -20,19 +20,14 @@ interface SearchParams {
   fund?: string;
   type?: string;
   year?: string;
-  yearType?: string;
 }
 
-function buildDateRange(year?: string, yearType?: string): { gte?: Date; lt?: Date } | undefined {
+function buildDateRange(year?: string): { gte?: Date; lt?: Date } | undefined {
   if (!year) return undefined;
   const y = parseInt(year);
   if (isNaN(y)) return undefined;
-  if (yearType === "fiscal") {
-    // Bangladesh fiscal year: July of `year` → June of `year + 1`
-    return { gte: new Date(y, 6, 1), lt: new Date(y + 1, 6, 1) };
-  }
-  // Default: calendar year
-  return { gte: new Date(y, 0, 1), lt: new Date(y + 1, 0, 1) };
+  // Bangladesh fiscal year: July of `year` → June of `year + 1`
+  return { gte: new Date(y, 6, 1), lt: new Date(y + 1, 6, 1) };
 }
 
 export default async function TransactionsPage({
@@ -64,7 +59,7 @@ export default async function TransactionsPage({
   if (searchParams.type === "BUY" || searchParams.type === "SELL") {
     where.direction = searchParams.type;
   }
-  const dateRange = buildDateRange(searchParams.year, searchParams.yearType);
+  const dateRange = buildDateRange(searchParams.year);
   if (dateRange) {
     where.orderDate = dateRange;
   }
@@ -100,9 +95,6 @@ export default async function TransactionsPage({
                   <TableHead className="text-right">No. of units</TableHead>
                   <TableHead className="text-right">Price</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-center">Form</TableHead>
-                  <TableHead className="text-center">Payment slip</TableHead>
                   <TableHead className="text-center">Ack slip</TableHead>
                 </TableRow>
               </TableHeader>
@@ -126,21 +118,6 @@ export default async function TransactionsPage({
                     </TableCell>
                     <TableCell className="text-right text-text-dark">
                       {formatNumber(Number(tx.amount), 0)}
-                    </TableCell>
-                    <TableCell>
-                      <span className={
-                        tx.status === "EXECUTED" ? "text-green-600 text-[12px] font-medium" :
-                        tx.status === "REJECTED" ? "text-red-500 text-[12px] font-medium" :
-                        "text-[#E09079] text-[12px] font-medium"
-                      }>
-                        {tx.status === "EXECUTED" ? "Active" : tx.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Download className="w-4 h-4 text-ekush-orange mx-auto cursor-pointer hover:text-ekush-orange-dark" />
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Download className="w-4 h-4 text-ekush-orange mx-auto cursor-pointer hover:text-ekush-orange-dark" />
                     </TableCell>
                     <TableCell className="text-center">
                       {tx.status === "EXECUTED" && (

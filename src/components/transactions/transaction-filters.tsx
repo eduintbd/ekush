@@ -50,16 +50,6 @@ export function TransactionFilters({ funds, years }: Props) {
 
       <select
         className={baseClass}
-        value={params.get("yearType") ?? ""}
-        onChange={(e) => setParam("yearType", e.target.value)}
-      >
-        <option value="">Select a year type</option>
-        <option value="calendar">Calendar Year</option>
-        <option value="fiscal">Fiscal Year</option>
-      </select>
-
-      <select
-        className={baseClass}
         value={params.get("year") ?? ""}
         onChange={(e) => setParam("year", e.target.value)}
       >
