@@ -8,12 +8,12 @@ export default function AdminImportPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Data Import</h1>
-        <p className="text-sm text-gray-500">Import investor and financial data from Excel files</p>
+        <h1 className="text-[20px] font-semibold text-text-dark font-rajdhani">Data Import</h1>
+        <p className="text-[13px] text-text-body">Import investor and financial data from Excel files</p>
       </div>
 
       {/* Last Import Info */}
-      <Card className="border-green-200 bg-green-50">
+      <Card className="shadow-card rounded-[10px] border-green-200 bg-green-50">
         <CardContent className="p-5 flex items-start gap-4">
           <CheckCircle className="w-6 h-6 text-green-600 shrink-0" />
           <div>
@@ -46,31 +46,31 @@ export default function AdminImportPage() {
 
       {/* Import Options */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <Card className="shadow-card rounded-[10px] hover:shadow-md transition-shadow cursor-pointer">
           <CardContent className="p-6 text-center">
-            <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <Upload className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-page-bg rounded-[10px] flex items-center justify-center mx-auto mb-3">
+              <Upload className="w-6 h-6 text-ekush-orange" />
             </div>
-            <h3 className="font-semibold text-gray-800">Upload New Data</h3>
-            <p className="text-sm text-gray-500 mt-1">
+            <h3 className="font-semibold text-text-dark font-rajdhani">Upload New Data</h3>
+            <p className="text-[13px] text-text-body mt-1">
               Upload updated INVESTORS Excel files to refresh investor holdings and transaction data.
             </p>
-            <p className="text-xs text-gray-400 mt-3">
+            <p className="text-xs text-text-muted mt-3">
               Supported: .xlsx files from EFUF, EGF, ESRF
             </p>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <Card className="shadow-card rounded-[10px] hover:shadow-md transition-shadow cursor-pointer">
           <CardContent className="p-6 text-center">
-            <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 bg-page-bg rounded-[10px] flex items-center justify-center mx-auto mb-3">
               <Database className="w-6 h-6 text-green-600" />
             </div>
-            <h3 className="font-semibold text-gray-800">Re-run Seed</h3>
-            <p className="text-sm text-gray-500 mt-1">
+            <h3 className="font-semibold text-text-dark font-rajdhani">Re-run Seed</h3>
+            <p className="text-[13px] text-text-body mt-1">
               Re-import all data from the original Excel files at C:\Repos\Ekush. Uses upsert to avoid duplicates.
             </p>
-            <p className="text-xs text-gray-400 mt-3">
+            <p className="text-xs text-text-muted mt-3">
               Run: npm run db:seed
             </p>
           </CardContent>
@@ -78,12 +78,12 @@ export default function AdminImportPage() {
       </div>
 
       {/* Data Source Info */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Data Sources</CardTitle></CardHeader>
+      <Card className="shadow-card rounded-[10px]">
+        <CardHeader><CardTitle className="text-[16px] font-semibold font-rajdhani text-text-dark">Data Sources</CardTitle></CardHeader>
         <CardContent>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-left text-gray-500">
+              <tr className="border-b text-left text-text-body">
                 <th className="pb-2 font-medium">Fund</th>
                 <th className="pb-2 font-medium">Investors File</th>
                 <th className="pb-2 font-medium">Financial File</th>
@@ -97,10 +97,10 @@ export default function AdminImportPage() {
                 { code: "ESRF", inv: "ESRF_2026.03.25 INVESTORS - Copy.xlsx", fin: "ESRF_2026.03.25 FIN STATS - Copy.xlsx", sheets: "INVESTORS, LS, SIP, TAX CERTIFICATE" },
               ].map(f => (
                 <tr key={f.code} className="border-b last:border-0">
-                  <td className="py-2 font-medium">{f.code}</td>
-                  <td className="py-2 text-xs text-gray-600">{f.inv}</td>
-                  <td className="py-2 text-xs text-gray-600">{f.fin}</td>
-                  <td className="py-2 text-xs text-gray-500">{f.sheets}</td>
+                  <td className="py-2 font-medium text-text-dark">{f.code}</td>
+                  <td className="py-2 text-xs text-text-body">{f.inv}</td>
+                  <td className="py-2 text-xs text-text-body">{f.fin}</td>
+                  <td className="py-2 text-xs text-text-body">{f.sheets}</td>
                 </tr>
               ))}
             </tbody>

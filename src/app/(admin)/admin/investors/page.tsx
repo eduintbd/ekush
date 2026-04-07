@@ -1,25 +1,45 @@
 import { prisma } from "@/lib/prisma";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { INVESTOR_TYPE_LABELS } from "@/lib/constants";
 import Link from "next/link";
 
-export default async function AdminInvestorsPage() {
-  const investors = await prisma.investor.findMany({
-    include: {
-      user: { select: { status: true, email: true, phone: true } },
-      holdings: { include: { fund: true } },
-    },
-    orderBy: { investorCode: "asc" },
-  });
+const PAGE_SIZE = 50;
+
+export default async function AdminInvestorsPage({
+  searchParams,
+}: {
+  searchParams: { page?: string };
+}) {
+  const page = Math.max(1, parseInt(searchParams.page || "1"));
+
+  const [investors, total] = await Promise.all([
+    prisma.investor.findMany({
+      include: {
+        user: { select: { status: true, email: true, phone: true } },
+        holdings: {
+          select: {
+            id: true,
+            fund: { select: { code: true } },
+          },
+        },
+      },
+      orderBy: { investorCode: "asc" },
+      take: PAGE_SIZE,
+      skip: (page - 1) * PAGE_SIZE,
+    }),
+    prisma.investor.count(),
+  ]);
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Investors</h1>
-          <p className="text-sm text-gray-500">{investors.length} total investors</p>
+          <h1 className="text-[20px] font-semibold text-text-dark font-rajdhani">Investors</h1>
+          <p className="text-[13px] text-text-body">{total} total investors</p>
         </div>
       </div>
 
@@ -28,7 +48,7 @@ export default async function AdminInvestorsPage() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="border-0 hover:bg-transparent">
                   <TableHead>Code</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Type</TableHead>
@@ -41,13 +61,13 @@ export default async function AdminInvestorsPage() {
               <TableBody>
                 {investors.map((inv) => (
                   <TableRow key={inv.id}>
-                    <TableCell className="font-mono text-sm">{inv.investorCode}</TableCell>
-                    <TableCell className="font-medium">{inv.name}</TableCell>
-                    <TableCell className="text-sm">
+                    <TableCell className="font-mono text-sm text-text-dark">{inv.investorCode}</TableCell>
+                    <TableCell className="font-medium text-text-dark">{inv.name}</TableCell>
+                    <TableCell className="text-sm text-text-body">
                       {INVESTOR_TYPE_LABELS[inv.investorType] || inv.investorType}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={inv.user.status === "ACTIVE" ? "success" : "warning"}>
+                      <Badge variant={inv.user.status === "ACTIVE" ? "active" : "pending"}>
                         {inv.user.status}
                       </Badge>
                     </TableCell>
@@ -60,13 +80,13 @@ export default async function AdminInvestorsPage() {
                         ))}
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-500">
+                    <TableCell className="text-sm text-text-body">
                       {inv.user.email || inv.user.phone || "N/A"}
                     </TableCell>
                     <TableCell>
                       <Link
                         href={`/admin/investors/${inv.id}`}
-                        className="text-blue-600 hover:underline text-sm"
+                        className="text-ekush-orange hover:underline text-sm"
                       >
                         View
                       </Link>
@@ -76,6 +96,33 @@ export default async function AdminInvestorsPage() {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-text-body/10">
+              <p className="text-[13px] text-text-body">
+                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}
+              </p>
+              <div className="flex gap-2">
+                {page > 1 && (
+                  <Link
+                    href={`/admin/investors?page=${page - 1}`}
+                    className="px-3 py-1.5 text-[13px] bg-page-bg text-text-dark rounded-[5px] hover:bg-ekush-orange hover:text-white transition-colors"
+                  >
+                    Previous
+                  </Link>
+                )}
+                {page < totalPages && (
+                  <Link
+                    href={`/admin/investors?page=${page + 1}`}
+                    className="px-3 py-1.5 text-[13px] bg-page-bg text-text-dark rounded-[5px] hover:bg-ekush-orange hover:text-white transition-colors"
+                  >
+                    Next
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

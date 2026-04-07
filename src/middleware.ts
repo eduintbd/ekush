@@ -14,10 +14,11 @@ export default withAuth(
       }
     }
 
-    // Check if user account is pending - force password change
-    if (token?.status === "PENDING" && !path.startsWith("/onboarding") && !path.startsWith("/api")) {
-      return NextResponse.redirect(new URL("/onboarding", req.url));
-    }
+    // KYC onboarding redirect disabled for development
+    // Uncomment below for production:
+    // if (token?.status === "PENDING" && !path.startsWith("/onboarding") && !path.startsWith("/api")) {
+    //   return NextResponse.redirect(new URL("/onboarding", req.url));
+    // }
 
     return NextResponse.next();
   },

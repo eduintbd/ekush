@@ -87,53 +87,53 @@ export default function SupportPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Support Center</h1>
-          <p className="text-sm text-gray-500">Submit requests and track their progress</p>
+          <h1 className="text-[20px] font-semibold text-text-dark font-rajdhani">Support Center</h1>
+          <p className="text-sm text-text-body">Submit requests and track their progress</p>
         </div>
-        <Button onClick={() => setShowCreate(!showCreate)} className="bg-[#1e3a5f] hover:bg-[#2d5a8f] text-white">
+        <Button onClick={() => setShowCreate(!showCreate)} className="bg-ekush-orange hover:bg-ekush-orange/90 text-white rounded-[5px] text-[13px]">
           <Plus className="w-4 h-4 mr-1" /> New Request
         </Button>
       </div>
 
       {/* Contact Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card><CardContent className="p-5 flex items-center gap-4">
-          <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center"><Phone className="w-5 h-5 text-blue-600" /></div>
-          <div><p className="font-medium text-sm">Call Us</p><p className="text-xs text-gray-500">+880-XXX-XXXXXXX</p></div>
+        <Card className="rounded-[10px] shadow-card"><CardContent className="p-5 flex items-center gap-4">
+          <div className="w-10 h-10 bg-ekush-orange/10 rounded-[10px] flex items-center justify-center"><Phone className="w-5 h-5 text-ekush-orange" /></div>
+          <div><p className="font-medium text-sm text-text-dark">Call Us</p><p className="text-xs text-text-body">+880-XXX-XXXXXXX</p></div>
         </CardContent></Card>
-        <Card><CardContent className="p-5 flex items-center gap-4">
-          <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center"><Mail className="w-5 h-5 text-green-600" /></div>
-          <div><p className="font-medium text-sm">Email</p><p className="text-xs text-gray-500">support@ekushwml.com</p></div>
+        <Card className="rounded-[10px] shadow-card"><CardContent className="p-5 flex items-center gap-4">
+          <div className="w-10 h-10 bg-green-50 rounded-[10px] flex items-center justify-center"><Mail className="w-5 h-5 text-green-600" /></div>
+          <div><p className="font-medium text-sm text-text-dark">Email</p><p className="text-xs text-text-body">support@ekushwml.com</p></div>
         </CardContent></Card>
-        <Card><CardContent className="p-5 flex items-center gap-4">
-          <div className="w-10 h-10 bg-violet-50 rounded-lg flex items-center justify-center"><MessageSquare className="w-5 h-5 text-violet-600" /></div>
-          <div><p className="font-medium text-sm">Live Chat</p><p className="text-xs text-gray-500">Coming soon</p></div>
+        <Card className="rounded-[10px] shadow-card"><CardContent className="p-5 flex items-center gap-4">
+          <div className="w-10 h-10 bg-navy/10 rounded-[10px] flex items-center justify-center"><MessageSquare className="w-5 h-5 text-navy" /></div>
+          <div><p className="font-medium text-sm text-text-dark">Live Chat</p><p className="text-xs text-text-body">Coming soon</p></div>
         </CardContent></Card>
       </div>
 
       {/* Create Form */}
       {showCreate && (
-        <Card className="border-blue-200">
-          <CardHeader><CardTitle className="text-base">New Service Request</CardTitle></CardHeader>
+        <Card className="border-ekush-orange/30 rounded-[10px] shadow-card">
+          <CardHeader><CardTitle className="text-[16px] font-semibold text-text-dark">New Service Request</CardTitle></CardHeader>
           <CardContent>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Request Type *</label>
-                <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full h-9 rounded-md border border-gray-300 px-3 text-sm" required>
+                <label className="text-sm font-medium text-text-label block mb-1">Request Type *</label>
+                <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full h-[50px] rounded-[5px] border border-input-border bg-input-bg px-3 text-sm" required>
                   <option value="">Select type...</option>
                   {REQUEST_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Description</label>
-                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[80px]" placeholder="Provide details about your request..." />
+                <label className="text-sm font-medium text-text-label block mb-1">Description</label>
+                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full rounded-[5px] border border-input-border bg-input-bg px-3 py-2 text-sm min-h-[80px]" placeholder="Provide details about your request..." />
               </div>
               <div className="flex gap-2">
-                <Button type="submit" disabled={loading || !form.type} className="bg-[#1e3a5f] hover:bg-[#2d5a8f] text-white">
+                <Button type="submit" disabled={loading || !form.type} className="bg-ekush-orange hover:bg-ekush-orange/90 text-white rounded-[5px] text-[13px]">
                   {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
                   Submit Request
                 </Button>
-                <Button type="button" onClick={() => setShowCreate(false)} variant="outline">Cancel</Button>
+                <Button type="button" onClick={() => setShowCreate(false)} variant="outline" className="rounded-[5px] text-[13px]">Cancel</Button>
               </div>
             </form>
           </CardContent>
@@ -142,45 +142,45 @@ export default function SupportPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-gray-500">Open Requests</p>
-          <p className="text-xl font-bold text-amber-600">{openTickets.length}</p>
+        <Card className="rounded-[10px] shadow-card"><CardContent className="p-4">
+          <p className="text-xs text-text-body">Open Requests</p>
+          <p className="text-xl font-bold text-amber-600 font-rajdhani">{openTickets.length}</p>
         </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-gray-500">Total Requests</p>
-          <p className="text-xl font-bold">{tickets.length}</p>
+        <Card className="rounded-[10px] shadow-card"><CardContent className="p-4">
+          <p className="text-xs text-text-body">Total Requests</p>
+          <p className="text-xl font-bold text-text-dark font-rajdhani">{tickets.length}</p>
         </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-gray-500">Resolved</p>
-          <p className="text-xl font-bold text-green-600">{tickets.filter(t => t.status === "RESOLVED" || t.status === "CLOSED").length}</p>
+        <Card className="rounded-[10px] shadow-card"><CardContent className="p-4">
+          <p className="text-xs text-text-body">Resolved</p>
+          <p className="text-xl font-bold text-green-600 font-rajdhani">{tickets.filter(t => t.status === "RESOLVED" || t.status === "CLOSED").length}</p>
         </CardContent></Card>
       </div>
 
       {/* Tickets */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Your Service Requests</CardTitle></CardHeader>
+      <Card className="rounded-[10px] shadow-card">
+        <CardHeader><CardTitle className="text-[16px] font-semibold text-text-dark">Your Service Requests</CardTitle></CardHeader>
         <CardContent>
           {fetchLoading ? (
-            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
+            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /></div>
           ) : tickets.length === 0 ? (
             <div className="text-center py-10">
-              <HelpCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 text-sm">No service requests yet.</p>
+              <HelpCircle className="w-10 h-10 text-text-muted mx-auto mb-3" />
+              <p className="text-text-body text-sm">No service requests yet.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {tickets.map((ticket) => (
-                <div key={ticket.id} className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => router.push(`/support/${ticket.id}`)}>
+                <div key={ticket.id} className="p-4 bg-page-bg rounded-[10px] hover:bg-page-bg/80 transition-colors cursor-pointer" onClick={() => router.push(`/support/${ticket.id}`)}>
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <Badge variant={statusVariant(ticket.status)}>{ticket.status}</Badge>
-                        <span className="text-sm font-medium">{ticket.type.replace(/_/g, " ")}</span>
+                        <span className="text-sm font-medium text-text-dark">{ticket.type.replace(/_/g, " ")}</span>
                       </div>
-                      <p className="text-xs text-gray-500">#{ticket.trackingNumber} | Created: {new Date(ticket.createdAt).toLocaleDateString("en-GB")}</p>
-                      {ticket.description && <p className="text-xs text-gray-600 mt-1 line-clamp-1">{ticket.description}</p>}
+                      <p className="text-xs text-text-body">#{ticket.trackingNumber} | Created: {new Date(ticket.createdAt).toLocaleDateString("en-GB")}</p>
+                      {ticket.description && <p className="text-xs text-text-body mt-1 line-clamp-1">{ticket.description}</p>}
                     </div>
-                    <div className="text-right text-xs text-gray-400">
+                    <div className="text-right text-xs text-text-muted">
                       {ticket.slaDeadline && (
                         <div className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />

@@ -5,90 +5,89 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
-  Briefcase,
-  ArrowLeftRight,
+  TrendingUp,
+  Calendar,
+  Coins,
+  PieChart,
   FileText,
-  User,
-  HelpCircle,
-  FolderOpen,
-  BookOpen,
-  Bell,
-  ChevronLeft,
-  ChevronRight,
-  Target,
-  RefreshCw,
+  UserPen,
+  Landmark,
+  Users,
+  Award,
+  Gift,
 } from "lucide-react";
-import { useState } from "react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/portfolio", label: "Portfolio", icon: Briefcase },
-  { href: "/portfolio/goals", label: "Goals", icon: Target },
-  { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
-  { href: "/sip", label: "SIP Plans", icon: RefreshCw },
-  { href: "/statements", label: "Statements", icon: FileText },
-  { href: "/documents", label: "Documents", icon: FolderOpen },
-  { href: "/profile", label: "Profile", icon: User },
-  { href: "/support", label: "Support", icon: HelpCircle },
-  { href: "/learn", label: "Learn", icon: BookOpen },
-  { href: "/notifications", label: "Notifications", icon: Bell },
+  { href: "/transactions/buy", label: "Buy Units", icon: TrendingUp },
+  { href: "/sip", label: "Invest in SIP", icon: Calendar },
+  { href: "/transactions/sell", label: "Sell Units", icon: Coins },
+  { href: "/statements", label: "Wealth Statement", icon: PieChart },
+  { href: "/transactions", label: "Transactions", icon: FileText },
+  { href: "/profile", label: "Edit Profile", icon: UserPen },
+  { href: "/profile/bank", label: "Bank & BO", icon: Landmark },
+  { href: "/profile/nominees", label: "Nominee(s)", icon: Users },
+  { href: "/statements/tax", label: "Tax Certificate", icon: Award },
+  { href: "/statements/dividends", label: "Dividend Option", icon: Gift },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <aside
-      className={cn(
-        "fixed left-0 top-0 z-40 h-screen bg-[rgba(0,0,0,0.95)] backdrop-blur-[10px] text-white transition-all duration-300 flex flex-col",
-        collapsed ? "w-[68px]" : "w-[260px]"
-      )}
-    >
+    <aside className="fixed left-0 top-0 z-40 h-screen w-[270px] bg-white shadow-sidebar overflow-hidden overflow-y-auto flex flex-col">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
-        <div className="w-9 h-9 bg-gradient-to-r from-[#F27023] to-[#e85d04] rounded-[10px] flex items-center justify-center font-bold text-white text-sm shrink-0 shadow-[0_4px_15px_rgba(242,112,35,0.3)]">
+      <div className="flex items-center gap-3 px-8 py-8">
+        <div className="w-10 h-10 bg-ekush-orange rounded-lg flex items-center justify-center font-bold text-white text-lg shrink-0">
           E
         </div>
-        {!collapsed && (
-          <div>
-            <h1 className="font-bold text-[14px] text-white">Ekush WML</h1>
-            <p className="text-[10px] text-white/40 tracking-wider uppercase">Investor Portal</p>
-          </div>
-        )}
+        <div>
+          <h1 className="font-bold text-[16px] text-navy font-rajdhani">Ekush WML</h1>
+          <p className="text-[10px] text-text-muted tracking-wider uppercase">Investor Portal</p>
+        </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2.5">
+      <nav className="flex-1 py-2">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/portfolio/goals" && pathname.startsWith(item.href + "/"));
+          const isActive =
+            pathname === item.href ||
+            (item.href === "/transactions" && pathname === "/transactions") ||
+            (item.href === "/statements" && pathname === "/statements") ||
+            (item.href !== "/transactions/buy" &&
+              item.href !== "/transactions/sell" &&
+              item.href !== "/transactions" &&
+              item.href !== "/statements" &&
+              item.href !== "/statements/tax" &&
+              item.href !== "/statements/dividends" &&
+              pathname.startsWith(item.href + "/"));
           const Icon = item.icon;
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-[10px] mb-1 text-[13px] font-medium transition-all duration-200",
+                "relative flex items-center gap-3 px-10 py-[10px] text-[14px] font-medium transition-all duration-300",
                 isActive
-                  ? "bg-gradient-to-r from-[#F27023]/20 to-[#F27023]/10 text-[#F27023] border border-[#F27023]/20"
-                  : "text-white/50 hover:bg-white/5 hover:text-white/80"
+                  ? "text-ekush-orange"
+                  : "text-text-dark hover:text-ekush-orange"
               )}
-              title={collapsed ? item.label : undefined}
             >
-              <Icon className={cn("w-[18px] h-[18px] shrink-0", isActive && "text-[#F27023]")} />
-              {!collapsed && <span>{item.label}</span>}
+              {/* Active indicator bar */}
+              {isActive && (
+                <span className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-ekush-orange rounded-l-sm" />
+              )}
+              <Icon
+                className={cn(
+                  "w-[18px] h-[18px] shrink-0 transition-colors",
+                  isActive ? "text-ekush-orange" : "text-icon-muted"
+                )}
+              />
+              <span>{item.label}</span>
             </Link>
           );
         })}
       </nav>
-
-      {/* Collapse Toggle */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center justify-center p-3 border-t border-white/10 text-white/30 hover:text-[#F27023] transition-colors"
-      >
-        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-      </button>
     </aside>
   );
 }

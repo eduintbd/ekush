@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowDownCircle, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { StepIndicator } from "@/components/ui/step-indicator";
+import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
 
 interface Holding {
   fund: { code: string; name: string; currentNav: number };
@@ -16,9 +16,12 @@ interface Holding {
   totalMarketValue: number;
 }
 
+const STEPS = ["Information", "Payment", "Confirm", "Success"];
+
 export default function SellPage() {
   const router = useRouter();
   const [holdings, setHoldings] = useState<Holding[]>([]);
+  const [step, setStep] = useState(0);
   const [selectedFund, setSelectedFund] = useState("");
   const [units, setUnits] = useState("");
   const [loading, setLoading] = useState(false);
@@ -39,12 +42,10 @@ export default function SellPage() {
   const estimatedAmount = unitsNum * nav;
   const estimatedGain = unitsNum * (nav - avgCost);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     if (!selectedFund || unitsNum <= 0) return;
     setLoading(true);
     setError("");
-    setResult(null);
 
     try {
       const res = await fetch("/api/transactions/sell", {
@@ -53,89 +54,71 @@ export default function SellPage() {
         body: JSON.stringify({ fundCode: selectedFund, units: unitsNum }),
       });
       const data = await res.json();
-      if (!res.ok) setError(data.error || "Order failed");
-      else setResult(data);
+      if (!res.ok) {
+        setError(data.error || "Order failed");
+        setStep(0);
+      } else {
+        setResult(data);
+        setStep(3);
+      }
     } catch {
       setError("Network error. Please try again.");
+      setStep(0);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Sell / Redeem Units</h1>
-        <p className="text-sm text-gray-500">Place a redemption order for your fund holdings</p>
-      </div>
+    <div className="max-w-3xl mx-auto space-y-6">
+      <h1 className="text-[22px] font-semibold text-text-dark font-rajdhani text-center">Sell Units</h1>
 
-      {result ? (
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="p-6 text-center">
-            <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-green-800">Redemption Submitted!</h3>
-            <p className="text-sm text-green-700 mt-2">{result.message}</p>
-            <div className="mt-4 space-y-1 text-sm text-green-800">
-              <p>Fund: <strong>{result.fund}</strong></p>
-              <p>Units: <strong>{result.units?.toFixed(4)}</strong></p>
-              <p>Est. Amount: <strong>৳{result.estimatedAmount?.toFixed(2)}</strong></p>
-              <p>Realized Gain: <strong className={result.realizedGain >= 0 ? "text-green-700" : "text-red-600"}>৳{result.realizedGain?.toFixed(2)}</strong></p>
-              <Badge variant="warning" className="mt-2">Pending Approval</Badge>
-            </div>
-            <div className="mt-6 flex gap-3 justify-center">
-              <Button onClick={() => { setResult(null); setUnits(""); }} variant="outline">Place Another</Button>
-              <Button onClick={() => router.push("/transactions")} className="bg-[#1e3a5f] hover:bg-[#2d5a8f] text-white">View Orders</Button>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
+      <StepIndicator currentStep={step} steps={STEPS} />
+
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 text-red-600 p-3 rounded-[10px] text-sm">
+          <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+        </div>
+      )}
+
+      {/* Step 0: Information */}
+      {step === 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <ArrowDownCircle className="w-5 h-5" /> Redemption Order
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {error && (
-              <div className="flex items-center gap-2 bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">
-                <AlertCircle className="w-4 h-4 shrink-0" /> {error}
-              </div>
-            )}
+          <CardContent className="p-8">
+            <h2 className="text-[16px] font-semibold text-text-dark font-rajdhani mb-6">Redemption Information</h2>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Select Fund</label>
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-[14px] font-medium text-text-label">Fund</label>
                 <select
                   value={selectedFund}
                   onChange={(e) => { setSelectedFund(e.target.value); setUnits(""); }}
-                  className="w-full h-10 rounded-md border border-gray-300 px-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full h-[50px] rounded-[5px] border border-input-border bg-input-bg px-5 text-[14px] text-text-dark focus:outline-none focus:border-ekush-orange"
                   required
                 >
-                  <option value="">Choose a fund...</option>
+                  <option value="">Please select a fund</option>
                   {holdings.map(h => (
                     <option key={h.fund.code} value={h.fund.code}>
-                      {h.fund.code} - Sellable: {Number(h.totalSellableUnits).toFixed(4)} units
+                      {h.fund.code} - {h.fund.name}
                     </option>
                   ))}
                 </select>
               </div>
 
               {holding && (
-                <div className="bg-gray-50 rounded-lg p-4 grid grid-cols-2 gap-2 text-sm">
-                  <div className="text-gray-500">Current Units</div>
-                  <div className="text-right font-medium">{Number(holding.totalCurrentUnits).toFixed(4)}</div>
-                  <div className="text-gray-500">Sellable Units</div>
-                  <div className="text-right font-medium text-green-600">{sellable.toFixed(4)}</div>
-                  <div className="text-gray-500">Current NAV</div>
-                  <div className="text-right font-medium">{nav.toFixed(4)}</div>
-                  <div className="text-gray-500">Avg Cost</div>
-                  <div className="text-right font-medium">{avgCost.toFixed(4)}</div>
+                <div className="bg-page-bg rounded-[10px] p-5 grid grid-cols-2 gap-3 text-[14px]">
+                  <span className="text-text-body">Sellable Units</span>
+                  <span className="text-right font-medium text-green-600">{sellable.toFixed(4)}</span>
+                  <span className="text-text-body">Current NAV</span>
+                  <span className="text-right font-medium text-text-dark">{nav.toFixed(4)}</span>
+                  <span className="text-text-body">Avg Cost</span>
+                  <span className="text-right font-medium text-text-dark">{avgCost.toFixed(4)}</span>
                 </div>
               )}
 
-              <div>
-                <Input
-                  label="Units to Redeem"
+              <div className="space-y-2">
+                <label className="text-[14px] font-medium text-text-label">Units to Redeem</label>
+                <input
                   type="number"
                   value={units}
                   onChange={(e) => setUnits(e.target.value)}
@@ -143,34 +126,127 @@ export default function SellPage() {
                   min="0.0001"
                   step="0.0001"
                   max={sellable}
+                  className="w-full h-[50px] rounded-[5px] border border-input-border bg-input-bg px-5 text-[14px] text-text-dark focus:outline-none focus:border-ekush-orange"
                   required
                 />
                 {sellable > 0 && (
-                  <button type="button" onClick={() => setUnits(sellable.toFixed(4))} className="text-xs text-blue-600 hover:underline mt-1">
+                  <button type="button" onClick={() => setUnits(sellable.toFixed(4))} className="text-xs text-ekush-orange hover:underline mt-1">
                     Redeem all ({sellable.toFixed(4)} units)
                   </button>
                 )}
               </div>
 
               {unitsNum > 0 && nav > 0 && (
-                <div className="bg-blue-50 rounded-lg p-4 space-y-2">
-                  <p className="text-sm font-medium text-blue-800">Redemption Estimate</p>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="text-gray-600">Est. Amount</div>
-                    <div className="text-right font-medium">৳{estimatedAmount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}</div>
-                    <div className="text-gray-600">Est. Gain/Loss</div>
-                    <div className={`text-right font-medium ${estimatedGain >= 0 ? "text-green-600" : "text-red-600"}`}>
+                <div className="bg-page-bg rounded-[10px] p-5 space-y-2">
+                  <div className="flex justify-between text-[14px]">
+                    <span className="text-text-body">Estimated Amount</span>
+                    <span className="text-text-dark font-medium">৳{estimatedAmount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-[14px]">
+                    <span className="text-text-body">Estimated Gain/Loss</span>
+                    <span className={`font-medium ${estimatedGain >= 0 ? "text-green-500" : "text-red-500"}`}>
                       ৳{estimatedGain.toFixed(2)}
-                    </div>
+                    </span>
                   </div>
                 </div>
               )}
+            </div>
 
-              <Button type="submit" disabled={loading || !selectedFund || unitsNum <= 0 || unitsNum > sellable} className="w-full bg-red-600 hover:bg-red-700 text-white h-11">
-                {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ArrowDownCircle className="w-4 h-4 mr-2" />}
-                Place Sell Order
+            <div className="mt-8 text-center">
+              <Button
+                onClick={() => setStep(1)}
+                disabled={!selectedFund || unitsNum <= 0 || unitsNum > sellable}
+                className="px-10"
+              >
+                Next Step
               </Button>
-            </form>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 1: Payment */}
+      {step === 1 && (
+        <Card>
+          <CardContent className="p-8">
+            <h2 className="text-[16px] font-semibold text-text-dark font-rajdhani mb-6">Payment Method</h2>
+            <div className="space-y-4">
+              <div className="p-4 border border-ekush-orange bg-ekush-orange/5 rounded-[10px] flex items-center gap-3">
+                <div className="w-4 h-4 rounded-full border-2 border-ekush-orange flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-ekush-orange" />
+                </div>
+                <span className="text-[14px] text-text-dark font-medium">Bank Transfer</span>
+              </div>
+            </div>
+            <div className="mt-8 flex justify-between">
+              <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
+              <Button onClick={() => setStep(2)}>Next Step</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 2: Confirm */}
+      {step === 2 && (
+        <Card>
+          <CardContent className="p-8">
+            <h2 className="text-[16px] font-semibold text-text-dark font-rajdhani mb-6">Confirm Redemption</h2>
+            <div className="bg-page-bg rounded-[10px] p-6 space-y-3">
+              <div className="flex justify-between text-[14px]">
+                <span className="text-text-body">Fund</span>
+                <span className="text-text-dark font-medium">{holding?.fund.name} ({holding?.fund.code})</span>
+              </div>
+              <div className="flex justify-between text-[14px]">
+                <span className="text-text-body">Units</span>
+                <span className="text-text-dark font-medium">{unitsNum.toFixed(4)}</span>
+              </div>
+              <div className="flex justify-between text-[14px]">
+                <span className="text-text-body">NAV</span>
+                <span className="text-text-dark font-medium">{nav.toFixed(4)}</span>
+              </div>
+              <div className="flex justify-between text-[14px]">
+                <span className="text-text-body">Estimated Amount</span>
+                <span className="text-text-dark font-medium">৳{estimatedAmount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}</span>
+              </div>
+              <div className="flex justify-between text-[14px]">
+                <span className="text-text-body">Estimated Gain/Loss</span>
+                <span className={`font-medium ${estimatedGain >= 0 ? "text-green-500" : "text-red-500"}`}>
+                  ৳{estimatedGain.toFixed(2)}
+                </span>
+              </div>
+            </div>
+            <div className="mt-8 flex justify-between">
+              <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
+              <Button onClick={handleSubmit} disabled={loading} className="bg-red-500 border-red-500 hover:bg-white hover:text-red-500">
+                {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                Confirm Sell Order
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 3: Success */}
+      {step === 3 && result && (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h2 className="text-[20px] font-semibold text-text-dark font-rajdhani mb-2">Redemption Submitted!</h2>
+            <p className="text-[14px] text-text-body mb-4">{result.message}</p>
+            <div className="inline-block bg-page-bg rounded-[10px] p-6 space-y-2 text-left mb-6">
+              <p className="text-[14px] text-text-body">Fund: <strong className="text-text-dark">{result.fund}</strong></p>
+              <p className="text-[14px] text-text-body">Units: <strong className="text-text-dark">{result.units?.toFixed(4)}</strong></p>
+              <p className="text-[14px] text-text-body">Est. Amount: <strong className="text-text-dark">৳{result.estimatedAmount?.toFixed(2)}</strong></p>
+              <Badge variant="pending" className="mt-2">Pending Approval</Badge>
+            </div>
+            <div className="flex gap-3 justify-center">
+              <Button variant="outline" onClick={() => { setResult(null); setStep(0); setUnits(""); }}>
+                Place Another
+              </Button>
+              <Button onClick={() => router.push("/transactions")}>
+                View Orders
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

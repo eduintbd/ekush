@@ -43,12 +43,12 @@ export default function NavEntryPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Daily NAV Entry</h1>
-        <p className="text-sm text-gray-500">Enter daily NAV values for each fund</p>
+        <h1 className="text-[20px] font-semibold text-text-dark font-rajdhani">Daily NAV Entry</h1>
+        <p className="text-[13px] text-text-body">Enter daily NAV values for each fund</p>
       </div>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">NAV Update</CardTitle></CardHeader>
+      <Card className="shadow-card rounded-[10px]">
+        <CardHeader><CardTitle className="text-[16px] font-semibold font-rajdhani text-text-dark">NAV Update</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <Input label="NAV Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
 
@@ -67,14 +67,14 @@ export default function NavEntryPage() {
                   placeholder="Enter NAV"
                 />
               </div>
-              <div className="text-xs text-gray-400 w-24 text-right">
+              <div className="text-xs text-text-muted w-24 text-right">
                 Current: {Number(f.currentNav).toFixed(4)}
               </div>
             </div>
           ))}
 
           <div className="flex items-center gap-3 pt-2">
-            <Button onClick={handleSave} disabled={loading} className="bg-[#1e3a5f] hover:bg-[#2d5a8f] text-white">
+            <Button onClick={handleSave} disabled={loading} variant="default">
               {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
               Save NAV
             </Button>

@@ -1,6 +1,7 @@
 "use client";
 
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import dynamic from "next/dynamic";
+import { useMemo } from "react";
 
 interface Fund {
   fundCode: string;
@@ -11,42 +12,63 @@ interface Fund {
 
 const COLORS = ["#F27023", "#e85d04", "#ffcfb2"];
 
+const RechartsChart = dynamic(
+  () =>
+    import("recharts").then((mod) => {
+      const { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } = mod;
+
+      return function ChartInner({ data }: { data: { name: string; value: number; weight: string }[] }) {
+        return (
+          <ResponsiveContainer width="100%" height={200}>
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={80}
+                paddingAngle={3}
+                dataKey="value"
+              >
+                {data.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value: any) => `৳${Number(value).toLocaleString("en-IN")}`}
+                contentStyle={{ borderRadius: "10px", border: "1px solid #e8ecef", boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        );
+      };
+    }),
+  {
+    loading: () => <div className="h-[200px] bg-page-bg animate-pulse rounded-[10px]" />,
+    ssr: false,
+  }
+);
+
 export function AllocationChart({ funds }: { funds: Fund[] }) {
-  const data = funds
-    .filter((f) => f.marketValue > 0)
-    .map((f) => ({
-      name: f.fundCode,
-      value: Math.round(f.marketValue),
-      weight: f.weight.toFixed(1),
-    }));
+  const data = useMemo(
+    () =>
+      funds
+        .filter((f) => f.marketValue > 0)
+        .map((f) => ({
+          name: f.fundCode,
+          value: Math.round(f.marketValue),
+          weight: f.weight.toFixed(1),
+        })),
+    [funds]
+  );
 
   if (data.length === 0) {
-    return <p className="text-[#999] text-sm text-center py-10">No data available</p>;
+    return <p className="text-text-muted text-sm text-center py-10">No data available</p>;
   }
 
   return (
     <div>
-      <ResponsiveContainer width="100%" height={200}>
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={50}
-            outerRadius={80}
-            paddingAngle={3}
-            dataKey="value"
-          >
-            {data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip
-            formatter={(value: any) => `৳${Number(value).toLocaleString("en-IN")}`}
-            contentStyle={{ borderRadius: "12px", border: "1px solid #e8ecef", boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}
-          />
-        </PieChart>
-      </ResponsiveContainer>
+      <RechartsChart data={data} />
 
       {/* Legend */}
       <div className="space-y-2 mt-2">
@@ -57,9 +79,9 @@ export function AllocationChart({ funds }: { funds: Fund[] }) {
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: COLORS[i % COLORS.length] }}
               />
-              <span className="text-[#6c757d]">{item.name}</span>
+              <span className="text-text-body">{item.name}</span>
             </div>
-            <span className="font-semibold text-[#333]">{item.weight}%</span>
+            <span className="font-semibold text-text-dark">{item.weight}%</span>
           </div>
         ))}
       </div>

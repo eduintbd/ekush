@@ -23,55 +23,92 @@ export async function POST(req: NextRequest) {
   const navDate = new Date(date);
   navDate.setHours(0, 0, 0, 0);
 
+  // Batch-fetch all funds at once instead of per-loop queries
+  const fundCodes = Object.keys(navValues);
+  const funds = await prisma.fund.findMany({
+    where: { code: { in: fundCodes } },
+  });
+  const fundMap = new Map(funds.map((f) => [f.code, f]));
+
+  // Batch-fetch all holdings for these funds
+  const fundIds = funds.map((f) => f.id);
+  const allHoldings = await prisma.fundHolding.findMany({
+    where: { fundId: { in: fundIds } },
+  });
+
+  // Group holdings by fundId
+  const holdingsByFund = new Map<string, typeof allHoldings>();
+  for (const h of allHoldings) {
+    if (!holdingsByFund.has(h.fundId)) holdingsByFund.set(h.fundId, []);
+    holdingsByFund.get(h.fundId)!.push(h);
+  }
+
+  // Build all operations, then execute in parallel
+  const operations: Promise<any>[] = [];
+
   for (const [fundCode, navStr] of Object.entries(navValues)) {
     const nav = parseFloat(navStr as string);
     if (isNaN(nav) || nav <= 0) continue;
 
-    const fund = await prisma.fund.findUnique({ where: { code: fundCode } });
+    const fund = fundMap.get(fundCode);
     if (!fund) continue;
 
-    // Update NAV record
-    await prisma.navRecord.upsert({
-      where: { fundId_date: { fundId: fund.id, date: navDate } },
-      update: { nav },
-      create: { fundId: fund.id, date: navDate, nav },
-    });
+    // Upsert NAV record
+    operations.push(
+      prisma.navRecord.upsert({
+        where: { fundId_date: { fundId: fund.id, date: navDate } },
+        update: { nav },
+        create: { fundId: fund.id, date: navDate, nav },
+      })
+    );
 
     // Update fund current NAV
-    await prisma.fund.update({
-      where: { code: fundCode },
-      data: { previousNav: fund.currentNav, currentNav: nav },
-    });
+    operations.push(
+      prisma.fund.update({
+        where: { code: fundCode },
+        data: { previousNav: fund.currentNav, currentNav: nav },
+      })
+    );
 
-    // Update all holdings market value for this fund
-    const holdings = await prisma.fundHolding.findMany({ where: { fundId: fund.id } });
+    // Batch update all holdings for this fund in parallel
+    const holdings = holdingsByFund.get(fund.id) || [];
     for (const h of holdings) {
       const currentUnits = Number(h.totalCurrentUnits);
       const newMarketValue = currentUnits * nav;
       const costValue = Number(h.totalCostValueCurrent);
-      await prisma.fundHolding.update({
-        where: { id: h.id },
-        data: {
-          nav,
-          totalMarketValue: newMarketValue,
-          totalUnrealizedGain: newMarketValue - costValue,
-          lsMarketValue: Number(h.lsCurrentUnits) * nav,
-          sipMarketValue: Number(h.sipCurrentUnits) * nav,
-          marketValueSellable: Number(h.totalSellableUnits) * nav,
-        },
-      });
+      operations.push(
+        prisma.fundHolding.update({
+          where: { id: h.id },
+          data: {
+            nav,
+            totalMarketValue: newMarketValue,
+            totalUnrealizedGain: newMarketValue - costValue,
+            lsMarketValue: Number(h.lsCurrentUnits) * nav,
+            sipMarketValue: Number(h.sipCurrentUnits) * nav,
+            marketValueSellable: Number(h.totalSellableUnits) * nav,
+          },
+        })
+      );
     }
+  }
 
-    // Recalculate AUM
+  // Execute all updates in parallel
+  await Promise.all(operations);
+
+  // Recalculate AUM for each fund in parallel
+  const aumOps = funds.map(async (fund) => {
+    const nav = parseFloat(navValues[fund.code] as string);
+    if (isNaN(nav) || nav <= 0) return;
     const aum = await prisma.fundHolding.aggregate({
       where: { fundId: fund.id },
       _sum: { totalMarketValue: true },
     });
     await prisma.fund.update({
-      where: { code: fundCode },
+      where: { code: fund.code },
       data: { totalAum: aum._sum.totalMarketValue || 0 },
     });
-  }
+  });
+  await Promise.all(aumOps);
 
   // Audit log
   await prisma.auditLog.create({

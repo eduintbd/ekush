@@ -36,10 +36,16 @@ export async function GET() {
   );
   const overallXirr = calculateXIRR(allFlows);
 
-  // Per-fund XIRR
+  // Per-fund XIRR — build map once for O(1) lookups instead of O(n) filter per holding
+  const txByFund = new Map<string, typeof transactions>();
+  for (const tx of transactions) {
+    if (!txByFund.has(tx.fundId)) txByFund.set(tx.fundId, []);
+    txByFund.get(tx.fundId)!.push(tx);
+  }
+
   const fundXirrs: Record<string, number | null> = {};
   for (const h of holdings) {
-    const fundTx = transactions.filter(t => t.fundId === h.fundId);
+    const fundTx = txByFund.get(h.fundId) || [];
     const fundFlows = buildCashFlows(
       fundTx.map(t => ({
         orderDate: t.orderDate,

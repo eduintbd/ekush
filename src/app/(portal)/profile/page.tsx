@@ -24,24 +24,21 @@ export default async function ProfilePage() {
   const investorId = (session?.user as any)?.investorId;
 
   if (!investorId) {
-    return <p className="text-gray-500 text-center py-20">Investor profile not found.</p>;
+    return <p className="text-text-body text-center py-20">Investor profile not found.</p>;
   }
 
   const investor = await getInvestorProfile(investorId);
-  if (!investor) return <p className="text-gray-500 text-center py-20">Profile not found.</p>;
+  if (!investor) return <p className="text-text-body text-center py-20">Profile not found.</p>;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Profile</h1>
-        <p className="text-sm text-gray-500">Manage your personal information and settings</p>
-      </div>
+      <h1 className="text-[20px] font-semibold text-text-dark font-rajdhani">Edit Profile</h1>
 
       {/* Personal Info (Read-only) */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <User className="w-4 h-4" /> Account Information
+          <CardTitle className="text-[16px] flex items-center gap-2">
+            <User className="w-4 h-4 text-icon-muted" /> Account Information
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -52,7 +49,7 @@ export default async function ProfilePage() {
             <InfoRow label="Title" value={investor.title || "N/A"} />
             <InfoRow label="BO ID" value={investor.boId || "N/A"} />
             <InfoRow label="Account Status">
-              <Badge variant={investor.user.status === "ACTIVE" ? "success" : "warning"}>
+              <Badge variant={investor.user.status === "ACTIVE" ? "active" : "pending"}>
                 {investor.user.status}
               </Badge>
             </InfoRow>
@@ -62,12 +59,10 @@ export default async function ProfilePage() {
 
       {/* Editable Sections */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Contact Details (Editable) */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Mail className="w-4 h-4" /> Contact Details
-              <Edit className="w-3 h-3 text-gray-400" />
+            <CardTitle className="text-[16px] flex items-center gap-2">
+              <Mail className="w-4 h-4 text-icon-muted" /> Contact Details
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -78,12 +73,10 @@ export default async function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Personal Details (Editable) */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <MapPin className="w-4 h-4" /> Personal Details
-              <Edit className="w-3 h-3 text-gray-400" />
+            <CardTitle className="text-[16px] flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-icon-muted" /> Personal Details
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -99,27 +92,27 @@ export default async function ProfilePage() {
       {/* Security */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Shield className="w-4 h-4" /> Security
+          <CardTitle className="text-[16px] flex items-center gap-2">
+            <Shield className="w-4 h-4 text-icon-muted" /> Security
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600">Two-Factor Auth</span>
-              <Badge variant={investor.user.twoFactorEnabled ? "success" : "outline"}>
+            <div className="flex justify-between items-center p-4 bg-page-bg rounded-[10px]">
+              <span className="text-[13px] text-text-body">Two-Factor Auth</span>
+              <Badge variant={investor.user.twoFactorEnabled ? "active" : "outline"}>
                 {investor.user.twoFactorEnabled ? "Enabled" : "Disabled"}
               </Badge>
             </div>
-            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600">Last Login</span>
-              <span className="text-sm font-medium">
+            <div className="flex justify-between items-center p-4 bg-page-bg rounded-[10px]">
+              <span className="text-[13px] text-text-body">Last Login</span>
+              <span className="text-[13px] font-medium text-text-dark">
                 {investor.user.lastLoginAt ? new Date(investor.user.lastLoginAt).toLocaleString("en-GB") : "N/A"}
               </span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600">KYC Status</span>
-              <Badge variant={investor.kycRecords.some(k => k.status === "VERIFIED") ? "success" : "warning"}>
+            <div className="flex justify-between items-center p-4 bg-page-bg rounded-[10px]">
+              <span className="text-[13px] text-text-body">KYC Status</span>
+              <Badge variant={investor.kycRecords.some(k => k.status === "VERIFIED") ? "active" : "pending"}>
                 {investor.kycRecords.some(k => k.status === "VERIFIED") ? "Verified" : "Pending"}
               </Badge>
             </div>
@@ -130,25 +123,25 @@ export default async function ProfilePage() {
       {/* Bank Accounts */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <CreditCard className="w-4 h-4" /> Bank Accounts
+          <CardTitle className="text-[16px] flex items-center gap-2">
+            <CreditCard className="w-4 h-4 text-icon-muted" /> Bank Accounts
           </CardTitle>
           <AddBankForm />
         </CardHeader>
         <CardContent>
           {investor.bankAccounts.length === 0 ? (
-            <p className="text-gray-500 text-sm">No bank accounts linked. Add one above.</p>
+            <p className="text-text-body text-sm">No bank accounts linked. Add one above.</p>
           ) : (
             <div className="space-y-3">
               {investor.bankAccounts.map((ba) => (
-                <div key={ba.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={ba.id} className="flex items-center justify-between p-4 bg-page-bg rounded-[10px]">
                   <div>
-                    <p className="font-medium text-sm">{ba.bankName}</p>
-                    <p className="text-xs text-gray-500">{ba.branchName} - A/C: {ba.accountNumber}</p>
-                    {ba.routingNumber && <p className="text-xs text-gray-400">Routing: {ba.routingNumber}</p>}
+                    <p className="font-medium text-[14px] text-text-dark">{ba.bankName}</p>
+                    <p className="text-[12px] text-text-body">{ba.branchName} - A/C: {ba.accountNumber}</p>
+                    {ba.routingNumber && <p className="text-[12px] text-text-muted">Routing: {ba.routingNumber}</p>}
                   </div>
                   <div className="flex items-center gap-2">
-                    {ba.isPrimary && <Badge variant="success">Primary</Badge>}
+                    {ba.isPrimary && <Badge variant="active">Primary</Badge>}
                     <DeleteButton id={ba.id} action="delete_bank" />
                   </div>
                 </div>
@@ -161,27 +154,27 @@ export default async function ProfilePage() {
       {/* Nominees */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Users className="w-4 h-4" /> Nominees
+          <CardTitle className="text-[16px] flex items-center gap-2">
+            <Users className="w-4 h-4 text-icon-muted" /> Nominees
           </CardTitle>
           <AddNomineeForm />
         </CardHeader>
         <CardContent>
           {investor.nominees.length === 0 ? (
-            <p className="text-gray-500 text-sm">No nominees registered. Add one above.</p>
+            <p className="text-text-body text-sm">No nominees registered. Add one above.</p>
           ) : (
             <div className="space-y-3">
               {investor.nominees.map((n) => (
-                <div key={n.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={n.id} className="flex items-center justify-between p-4 bg-page-bg rounded-[10px]">
                   <div>
-                    <p className="font-medium text-sm">{n.name}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="font-medium text-[14px] text-text-dark">{n.name}</p>
+                    <p className="text-[12px] text-text-body">
                       {n.relationship || "Relationship not specified"}
                       {n.nidNumber && ` | NID: ${n.nidNumber}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{Number(n.share)}%</span>
+                    <span className="text-[14px] font-semibold text-navy font-rajdhani">{Number(n.share)}%</span>
                     <DeleteButton id={n.id} action="delete_nominee" />
                   </div>
                 </div>
@@ -196,9 +189,9 @@ export default async function ProfilePage() {
 
 function InfoRow({ label, value, children }: { label: string; value?: string; children?: React.ReactNode }) {
   return (
-    <div className="flex justify-between py-1">
-      <span className="text-sm text-gray-500">{label}</span>
-      {children || <span className="text-sm font-medium text-gray-800">{value}</span>}
+    <div className="flex justify-between py-2">
+      <span className="text-[13px] text-text-body">{label}</span>
+      {children || <span className="text-[13px] font-medium text-text-dark">{value}</span>}
     </div>
   );
 }

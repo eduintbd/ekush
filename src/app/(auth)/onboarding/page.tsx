@@ -99,15 +99,15 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-page-bg py-8 px-4 font-poppins">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-[#d4a843] rounded-lg flex items-center justify-center font-bold text-[#1e3a5f] text-lg">E</div>
+            <div className="w-10 h-10 bg-ekush-orange rounded-[5px] flex items-center justify-center font-bold text-white text-lg shadow-card">E</div>
             <div className="text-left">
-              <h1 className="text-xl font-bold text-gray-800">Complete Your Profile</h1>
-              <p className="text-sm text-gray-500">Digital onboarding & e-KYC</p>
+              <h1 className="text-xl font-bold text-text-dark font-rajdhani">Complete Your Profile</h1>
+              <p className="text-sm text-text-body">Digital onboarding & e-KYC</p>
             </div>
           </div>
         </div>
@@ -118,24 +118,24 @@ export default function OnboardingPage() {
             <div key={s.id} className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                 i < step ? "bg-green-500 text-white" :
-                i === step ? "bg-[#1e3a5f] text-white" :
-                "bg-gray-200 text-gray-500"
+                i === step ? "bg-navy text-white" :
+                "bg-input-border/40 text-text-body"
               }`}>
                 {i < step ? <CheckCircle className="w-4 h-4" /> : i + 1}
               </div>
-              {i < STEPS.length - 1 && <div className={`w-8 h-0.5 ${i < step ? "bg-green-500" : "bg-gray-200"}`} />}
+              {i < STEPS.length - 1 && <div className={`w-8 h-0.5 ${i < step ? "bg-green-500" : "bg-input-border/40"}`} />}
             </div>
           ))}
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              {(() => { const Icon = STEPS[step].icon; return <Icon className="w-5 h-5" />; })()}
+        <div className="bg-white rounded-card shadow-card overflow-hidden">
+          <div className="px-6 py-5 border-b border-input-border/30">
+            <h2 className="text-base font-bold text-text-dark font-rajdhani flex items-center gap-2">
+              {(() => { const Icon = STEPS[step].icon; return <Icon className="w-5 h-5 text-ekush-orange" />; })()}
               Step {step + 1}: {STEPS[step].title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            </h2>
+          </div>
+          <div className="p-6 space-y-4">
 
             {/* Step 0: Personal */}
             {step === 0 && (
@@ -149,17 +149,17 @@ export default function OnboardingPage() {
             {/* Step 1: Identity */}
             {step === 1 && (
               <>
-                <p className="text-sm text-gray-600">Upload your National ID (NID) or Passport for identity verification.</p>
+                <p className="text-sm text-text-body">Upload your National ID (NID) or Passport for identity verification.</p>
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1">NID / Passport *</label>
+                  <label className="text-[14px] font-medium text-text-label block mb-2">NID / Passport *</label>
                   <input type="file" accept="image/*,.pdf" onChange={(e) => setNidFile(e.target.files?.[0] || null)}
-                    className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700" />
+                    className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-[5px] file:border-0 file:text-sm file:font-semibold file:bg-ekush-orange/10 file:text-ekush-orange" />
                   {nidFile && <p className="text-xs text-green-600 mt-1">Selected: {nidFile.name}</p>}
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1">Selfie Photo (optional, for face match)</label>
+                  <label className="text-[14px] font-medium text-text-label block mb-2">Selfie Photo (optional, for face match)</label>
                   <input type="file" accept="image/*" onChange={(e) => setSelfieFile(e.target.files?.[0] || null)}
-                    className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700" />
+                    className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-[5px] file:border-0 file:text-sm file:font-semibold file:bg-ekush-orange/10 file:text-ekush-orange" />
                 </div>
               </>
             )}
@@ -167,18 +167,18 @@ export default function OnboardingPage() {
             {/* Step 2: FATCA/CRS */}
             {step === 2 && (
               <>
-                <p className="text-sm text-gray-600">Foreign Account Tax Compliance Act (FATCA) and Common Reporting Standard (CRS) declaration.</p>
+                <p className="text-sm text-text-body">Foreign Account Tax Compliance Act (FATCA) and Common Reporting Standard (CRS) declaration.</p>
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1">Are you a US Person?</label>
-                  <select value={fatca.usPerson} onChange={(e) => setFatca({ ...fatca, usPerson: e.target.value })} className="w-full h-9 rounded-md border border-gray-300 px-3 text-sm">
+                  <label className="text-[14px] font-medium text-text-label block mb-2">Are you a US Person?</label>
+                  <select value={fatca.usPerson} onChange={(e) => setFatca({ ...fatca, usPerson: e.target.value })} className="w-full h-[50px] rounded-[5px] border border-input-border bg-input-bg px-5 text-[14px] text-text-dark">
                     <option value="no">No</option>
                     <option value="yes">Yes</option>
                   </select>
                 </div>
                 <Input label="Country of Tax Residence" value={fatca.taxResidence} onChange={(e) => setFatca({ ...fatca, taxResidence: e.target.value })} />
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1">TIN Provided?</label>
-                  <select value={fatca.tinProvided} onChange={(e) => setFatca({ ...fatca, tinProvided: e.target.value })} className="w-full h-9 rounded-md border border-gray-300 px-3 text-sm">
+                  <label className="text-[14px] font-medium text-text-label block mb-2">TIN Provided?</label>
+                  <select value={fatca.tinProvided} onChange={(e) => setFatca({ ...fatca, tinProvided: e.target.value })} className="w-full h-[50px] rounded-[5px] border border-input-border bg-input-bg px-5 text-[14px] text-text-dark">
                     <option value="yes">Yes</option>
                     <option value="no">No - will provide later</option>
                   </select>
@@ -189,7 +189,7 @@ export default function OnboardingPage() {
             {/* Step 3: Bank */}
             {step === 3 && (
               <>
-                <p className="text-sm text-gray-600">Add your bank account for investments and redemptions.</p>
+                <p className="text-sm text-text-body">Add your bank account for investments and redemptions.</p>
                 <Input label="Bank Name *" value={bank.bankName} onChange={(e) => setBank({ ...bank, bankName: e.target.value })} placeholder="e.g., Dutch Bangla Bank" required />
                 <Input label="Branch" value={bank.branchName} onChange={(e) => setBank({ ...bank, branchName: e.target.value })} placeholder="Branch name" />
                 <Input label="Account Number *" value={bank.accountNumber} onChange={(e) => setBank({ ...bank, accountNumber: e.target.value })} placeholder="Account number" required />
@@ -200,13 +200,13 @@ export default function OnboardingPage() {
             {/* Step 4: Risk Profile */}
             {step === 4 && (
               <>
-                <p className="text-sm text-gray-600">Help us understand your risk tolerance to recommend suitable investments.</p>
+                <p className="text-sm text-text-body">Help us understand your risk tolerance to recommend suitable investments.</p>
                 {RISK_QUESTIONS.map((rq, i) => (
                   <div key={i}>
-                    <label className="text-sm font-medium text-gray-700 block mb-1">{rq.q}</label>
+                    <label className="text-[14px] font-medium text-text-label block mb-2">{rq.q}</label>
                     <select value={riskAnswers[i]} onChange={(e) => {
                       const a = [...riskAnswers]; a[i] = e.target.value; setRiskAnswers(a);
-                    }} className="w-full h-9 rounded-md border border-gray-300 px-3 text-sm" required>
+                    }} className="w-full h-[50px] rounded-[5px] border border-input-border bg-input-bg px-5 text-[14px] text-text-dark" required>
                       <option value="">Select...</option>
                       {rq.opts.map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
@@ -218,8 +218,8 @@ export default function OnboardingPage() {
             {/* Step 5: Consent */}
             {step === 5 && (
               <>
-                <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-600 max-h-48 overflow-y-auto space-y-2">
-                  <p className="font-medium text-gray-800">Terms & Conditions</p>
+                <div className="bg-page-bg rounded-[5px] p-4 text-sm text-text-body max-h-48 overflow-y-auto space-y-2">
+                  <p className="font-medium text-text-dark">Terms & Conditions</p>
                   <p>I hereby confirm that the information provided is true and correct to the best of my knowledge.</p>
                   <p>I authorize Ekush Wealth Management Ltd to process my personal data for account management, KYC compliance, and regulatory requirements as per Bangladesh Bank and BSEC guidelines.</p>
                   <p>I understand that mutual fund investments are subject to market risk and past performance does not guarantee future results.</p>
@@ -227,33 +227,33 @@ export default function OnboardingPage() {
                   <p>I acknowledge that my KYC documents will be verified and I may be required to provide additional documents if necessary.</p>
                 </div>
                 <label className="flex items-start gap-3 cursor-pointer">
-                  <input type="checkbox" checked={consented} onChange={(e) => setConsented(e.target.checked)} className="mt-1 w-4 h-4" />
-                  <span className="text-sm text-gray-700">I have read and agree to the Terms & Conditions, Privacy Policy, and consent to data processing as described above.</span>
+                  <input type="checkbox" checked={consented} onChange={(e) => setConsented(e.target.checked)} className="mt-1 w-4 h-4 accent-ekush-orange" />
+                  <span className="text-sm text-text-dark">I have read and agree to the Terms & Conditions, Privacy Policy, and consent to data processing as described above.</span>
                 </label>
               </>
             )}
 
             {/* Navigation */}
-            <div className="flex justify-between pt-4 border-t">
+            <div className="flex justify-between pt-4 border-t border-input-border/30">
               <Button type="button" variant="outline" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0}>
                 <ChevronLeft className="w-4 h-4 mr-1" /> Back
               </Button>
 
               {step < STEPS.length - 1 ? (
-                <Button type="button" onClick={handleNext} disabled={!canProceed()} className="bg-[#1e3a5f] hover:bg-[#2d5a8f] text-white">
+                <Button type="button" onClick={handleNext} disabled={!canProceed()}>
                   Next <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               ) : (
-                <Button type="button" onClick={handleSubmit} disabled={!canProceed() || loading} className="bg-green-600 hover:bg-green-700 text-white">
+                <Button type="button" onClick={handleSubmit} disabled={!canProceed() || loading} className="bg-green-600 hover:bg-green-700 border-green-600 text-white">
                   {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <CheckCircle className="w-4 h-4 mr-1" />}
                   Complete Onboarding
                 </Button>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <p className="text-xs text-gray-400 text-center mt-4">
+        <p className="text-xs text-text-body text-center mt-4">
           Your data is encrypted and stored securely. Licensed by BSEC.
         </p>
       </div>

@@ -54,27 +54,27 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // Create approval queue entry (maker-checker)
-  await prisma.approvalQueue.create({
-    data: {
-      entityType: "TRANSACTION",
-      entityId: transaction.id,
-      makerId: userId,
-      status: "PENDING",
-      notes: `BUY ${fundCode} - BDT ${amount.toLocaleString("en-IN")} (${units.toFixed(4)} units @ NAV ${nav.toFixed(4)})`,
-    },
-  });
-
-  // Create notification
-  await prisma.notification.create({
-    data: {
-      userId,
-      type: "TRANSACTION",
-      title: "Buy Order Placed",
-      message: `Your buy order for ${fundCode} of BDT ${amount.toLocaleString("en-IN")} has been submitted and is pending approval.`,
-      link: "/transactions",
-    },
-  });
+  // Create approval queue entry and notification in parallel
+  await Promise.all([
+    prisma.approvalQueue.create({
+      data: {
+        entityType: "TRANSACTION",
+        entityId: transaction.id,
+        makerId: userId,
+        status: "PENDING",
+        notes: `BUY ${fundCode} - BDT ${amount.toLocaleString("en-IN")} (${units.toFixed(4)} units @ NAV ${nav.toFixed(4)})`,
+      },
+    }),
+    prisma.notification.create({
+      data: {
+        userId,
+        type: "TRANSACTION",
+        title: "Buy Order Placed",
+        message: `Your buy order for ${fundCode} of BDT ${amount.toLocaleString("en-IN")} has been submitted and is pending approval.`,
+        link: "/transactions",
+      },
+    }),
+  ]);
 
   return NextResponse.json({
     id: transaction.id,

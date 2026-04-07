@@ -2,20 +2,24 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { StepIndicator } from "@/components/ui/step-indicator";
+import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
 
 interface Fund { code: string; name: string; currentNav: number; }
+
+const STEPS = ["Information", "Payment", "Confirm", "Success"];
 
 export default function BuyPage() {
   const router = useRouter();
   const [funds, setFunds] = useState<Fund[]>([]);
+  const [step, setStep] = useState(0);
   const [selectedFund, setSelectedFund] = useState("");
   const [amount, setAmount] = useState("");
-  const [channel, setChannel] = useState("LS");
+  const [dividendOption, setDividendOption] = useState("CIP");
+  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState("");
@@ -29,149 +33,236 @@ export default function BuyPage() {
   const amountNum = parseFloat(amount) || 0;
   const estimatedUnits = nav > 0 ? amountNum / nav : 0;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     if (!selectedFund || amountNum <= 0) return;
     setLoading(true);
     setError("");
-    setResult(null);
 
     try {
       const res = await fetch("/api/transactions/buy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fundCode: selectedFund, amount: amountNum, channel }),
+        body: JSON.stringify({ fundCode: selectedFund, amount: amountNum, channel: "LS" }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Order failed");
+        setStep(0);
       } else {
         setResult(data);
+        setStep(3);
       }
     } catch {
       setError("Network error. Please try again.");
+      setStep(0);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Buy / Purchase Units</h1>
-        <p className="text-sm text-gray-500">Place a purchase order for Ekush mutual funds</p>
-      </div>
+    <div className="max-w-3xl mx-auto space-y-6">
+      <h1 className="text-[22px] font-semibold text-text-dark font-rajdhani text-center">Buy Fund</h1>
 
-      {result ? (
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="p-6 text-center">
-            <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-green-800">Order Submitted!</h3>
-            <p className="text-sm text-green-700 mt-2">{result.message}</p>
-            <div className="mt-4 space-y-1 text-sm text-green-800">
-              <p>Fund: <strong>{result.fund}</strong></p>
-              <p>Amount: <strong>৳{result.amount?.toLocaleString("en-IN")}</strong></p>
-              <p>Est. Units: <strong>{result.estimatedUnits?.toFixed(4)}</strong></p>
-              <p>NAV: <strong>{result.nav?.toFixed(4)}</strong></p>
-              <Badge variant="warning" className="mt-2">Pending Approval</Badge>
-            </div>
-            <div className="mt-6 flex gap-3 justify-center">
-              <Button onClick={() => { setResult(null); setAmount(""); }} variant="outline">Place Another Order</Button>
-              <Button onClick={() => router.push("/transactions")} className="bg-[#1e3a5f] hover:bg-[#2d5a8f] text-white">View Orders</Button>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
+      <StepIndicator currentStep={step} steps={STEPS} />
+
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 text-red-600 p-3 rounded-[10px] text-sm">
+          <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+        </div>
+      )}
+
+      {/* Step 0: Information */}
+      {step === 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5" /> Purchase Order
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {error && (
-              <div className="flex items-center gap-2 bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">
-                <AlertCircle className="w-4 h-4 shrink-0" /> {error}
-              </div>
-            )}
+          <CardContent className="p-8">
+            <h2 className="text-[16px] font-semibold text-text-dark font-rajdhani mb-6">Investment&apos;s Information</h2>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Select Fund</label>
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-[14px] font-medium text-text-label">Fund</label>
                 <select
                   value={selectedFund}
                   onChange={(e) => setSelectedFund(e.target.value)}
-                  className="w-full h-10 rounded-md border border-gray-300 px-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full h-[50px] rounded-[5px] border border-input-border bg-input-bg px-5 text-[14px] text-text-dark focus:outline-none focus:border-ekush-orange"
                   required
                 >
-                  <option value="">Choose a fund...</option>
+                  <option value="">Please select a fund</option>
                   {funds.map(f => (
-                    <option key={f.code} value={f.code}>{f.code} - {f.name} (NAV: {Number(f.currentNav).toFixed(4)})</option>
+                    <option key={f.code} value={f.code}>{f.code} - {f.name}</option>
                   ))}
                 </select>
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Investment Channel</label>
-                <div className="flex gap-3">
-                  {["LS", "SIP"].map(ch => (
-                    <button
-                      key={ch}
-                      type="button"
-                      onClick={() => setChannel(ch)}
-                      className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                        channel === ch
-                          ? "bg-[#1e3a5f] text-white border-[#1e3a5f]"
-                          : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
-                      }`}
-                    >
-                      {ch === "LS" ? "Lump Sum" : "SIP"}
-                    </button>
-                  ))}
-                </div>
+              <div className="space-y-2">
+                <label className="text-[14px] font-medium text-ekush-orange">Amount</label>
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Enter investment amount"
+                  min="1"
+                  className="w-full h-[50px] rounded-[5px] border border-input-border bg-input-bg px-5 text-[14px] text-text-dark focus:outline-none focus:border-ekush-orange"
+                  required
+                />
               </div>
 
-              <Input
-                label="Investment Amount (BDT)"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="Enter amount"
-                min="1"
-                required
-              />
-
-              {/* Estimation Panel */}
-              {amountNum > 0 && nav > 0 && (
-                <div className="bg-blue-50 rounded-lg p-4 space-y-2">
-                  <p className="text-sm font-medium text-blue-800">Order Estimate</p>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="text-gray-600">Current NAV</div>
-                    <div className="text-right font-medium">{nav.toFixed(4)}</div>
-                    <div className="text-gray-600">Est. Units</div>
-                    <div className="text-right font-medium">{estimatedUnits.toFixed(4)}</div>
-                    <div className="text-gray-600">Unit Capital</div>
-                    <div className="text-right font-medium">৳{(estimatedUnits * 10).toFixed(2)}</div>
-                    <div className="text-gray-600">Unit Premium</div>
-                    <div className="text-right font-medium">৳{(amountNum - estimatedUnits * 10).toFixed(2)}</div>
-                  </div>
-                </div>
-              )}
-
-              {/* Cut-off Warning */}
-              <div className="flex items-start gap-2 bg-amber-50 p-3 rounded-lg text-xs text-amber-700">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium">Cut-off Time Notice</p>
-                  <p>Orders placed before 2:00 PM will be processed at today&apos;s NAV. Orders after 2:00 PM will use the next business day&apos;s NAV.</p>
-                </div>
+              <div className="space-y-2">
+                <label className="text-[14px] font-medium text-text-label">Unit price *</label>
+                <input
+                  type="text"
+                  value={nav > 0 ? nav.toFixed(2) : ""}
+                  readOnly
+                  className="w-full h-[50px] rounded-[5px] border border-input-border bg-gray-50 px-5 text-[14px] text-text-body"
+                />
               </div>
 
-              <Button type="submit" disabled={loading || !selectedFund || amountNum <= 0} className="w-full bg-[#1e3a5f] hover:bg-[#2d5a8f] text-white h-11">
-                {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ShoppingCart className="w-4 h-4 mr-2" />}
-                Place Buy Order
+              <div className="space-y-2">
+                <label className="text-[14px] font-medium text-text-label">No of units *</label>
+                <input
+                  type="text"
+                  value={estimatedUnits > 0 ? estimatedUnits.toFixed(4) : ""}
+                  readOnly
+                  className="w-full h-[50px] rounded-[5px] border border-input-border bg-gray-50 px-5 text-[14px] text-text-body"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[14px] font-medium text-text-label">Dividend</label>
+                <select
+                  value={dividendOption}
+                  onChange={(e) => setDividendOption(e.target.value)}
+                  className="w-full h-[50px] rounded-[5px] border border-input-border bg-input-bg px-5 text-[14px] text-text-dark focus:outline-none focus:border-ekush-orange"
+                >
+                  <option value="CIP">CIP</option>
+                  <option value="CASH">Cash</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[14px] font-medium text-text-label">First Nominee</label>
+                <select
+                  className="w-full h-[50px] rounded-[5px] border border-input-border bg-input-bg px-5 text-[14px] text-text-dark focus:outline-none focus:border-ekush-orange"
+                >
+                  <option value="100">100%</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <input
+                  type="checkbox"
+                  id="agree"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="w-4 h-4 accent-ekush-orange"
+                />
+                <label htmlFor="agree" className="text-[13px] text-text-body">
+                  I agree to pay 2% fees in case of liquidation in 60 calendar days
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-8 text-center">
+              <Button
+                onClick={() => setStep(1)}
+                disabled={!selectedFund || amountNum <= 0 || !agreed}
+                className="px-10"
+              >
+                Next Step
               </Button>
-            </form>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 1: Payment */}
+      {step === 1 && (
+        <Card>
+          <CardContent className="p-8">
+            <h2 className="text-[16px] font-semibold text-text-dark font-rajdhani mb-6">Payment Method</h2>
+            <div className="space-y-4">
+              <div className="p-4 border border-ekush-orange bg-ekush-orange/5 rounded-[10px] flex items-center gap-3">
+                <div className="w-4 h-4 rounded-full border-2 border-ekush-orange flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-ekush-orange" />
+                </div>
+                <span className="text-[14px] text-text-dark font-medium">Bank Transfer</span>
+              </div>
+              <div className="p-4 border border-input-border rounded-[10px] flex items-center gap-3 opacity-50">
+                <div className="w-4 h-4 rounded-full border-2 border-input-border" />
+                <span className="text-[14px] text-text-body">Cheque</span>
+              </div>
+            </div>
+            <div className="mt-8 flex justify-between">
+              <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
+              <Button onClick={() => setStep(2)}>Next Step</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 2: Confirm */}
+      {step === 2 && (
+        <Card>
+          <CardContent className="p-8">
+            <h2 className="text-[16px] font-semibold text-text-dark font-rajdhani mb-6">Confirm Your Order</h2>
+            <div className="bg-page-bg rounded-[10px] p-6 space-y-3">
+              <div className="flex justify-between text-[14px]">
+                <span className="text-text-body">Fund</span>
+                <span className="text-text-dark font-medium">{fund?.name} ({fund?.code})</span>
+              </div>
+              <div className="flex justify-between text-[14px]">
+                <span className="text-text-body">Amount</span>
+                <span className="text-text-dark font-medium">৳{amountNum.toLocaleString("en-IN")}</span>
+              </div>
+              <div className="flex justify-between text-[14px]">
+                <span className="text-text-body">NAV</span>
+                <span className="text-text-dark font-medium">{nav.toFixed(4)}</span>
+              </div>
+              <div className="flex justify-between text-[14px]">
+                <span className="text-text-body">Estimated Units</span>
+                <span className="text-text-dark font-medium">{estimatedUnits.toFixed(4)}</span>
+              </div>
+              <div className="flex justify-between text-[14px]">
+                <span className="text-text-body">Dividend Option</span>
+                <span className="text-text-dark font-medium">{dividendOption}</span>
+              </div>
+              <div className="flex justify-between text-[14px]">
+                <span className="text-text-body">Payment</span>
+                <span className="text-text-dark font-medium">Bank Transfer</span>
+              </div>
+            </div>
+            <div className="mt-8 flex justify-between">
+              <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
+              <Button onClick={handleSubmit} disabled={loading}>
+                {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                Confirm Order
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 3: Success */}
+      {step === 3 && result && (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h2 className="text-[20px] font-semibold text-text-dark font-rajdhani mb-2">Order Submitted!</h2>
+            <p className="text-[14px] text-text-body mb-4">{result.message}</p>
+            <div className="inline-block bg-page-bg rounded-[10px] p-6 space-y-2 text-left mb-6">
+              <p className="text-[14px] text-text-body">Fund: <strong className="text-text-dark">{result.fund}</strong></p>
+              <p className="text-[14px] text-text-body">Amount: <strong className="text-text-dark">৳{result.amount?.toLocaleString("en-IN")}</strong></p>
+              <p className="text-[14px] text-text-body">Est. Units: <strong className="text-text-dark">{result.estimatedUnits?.toFixed(4)}</strong></p>
+              <Badge variant="pending" className="mt-2">Pending Approval</Badge>
+            </div>
+            <div className="flex gap-3 justify-center">
+              <Button variant="outline" onClick={() => { setResult(null); setStep(0); setAmount(""); setAgreed(false); }}>
+                Place Another Order
+              </Button>
+              <Button onClick={() => router.push("/transactions")}>
+                View Orders
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

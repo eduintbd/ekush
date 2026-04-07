@@ -66,25 +66,27 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  await prisma.approvalQueue.create({
-    data: {
-      entityType: "TRANSACTION",
-      entityId: transaction.id,
-      makerId: userId,
-      status: "PENDING",
-      notes: `SELL ${fundCode} - ${requestedUnits.toFixed(4)} units @ NAV ${nav.toFixed(4)} = BDT ${amount.toFixed(2)}`,
-    },
-  });
-
-  await prisma.notification.create({
-    data: {
-      userId,
-      type: "TRANSACTION",
-      title: "Sell Order Placed",
-      message: `Your sell order for ${requestedUnits.toFixed(4)} units of ${fundCode} has been submitted and is pending approval.`,
-      link: "/transactions",
-    },
-  });
+  // Create approval queue entry and notification in parallel
+  await Promise.all([
+    prisma.approvalQueue.create({
+      data: {
+        entityType: "TRANSACTION",
+        entityId: transaction.id,
+        makerId: userId,
+        status: "PENDING",
+        notes: `SELL ${fundCode} - ${requestedUnits.toFixed(4)} units @ NAV ${nav.toFixed(4)} = BDT ${amount.toFixed(2)}`,
+      },
+    }),
+    prisma.notification.create({
+      data: {
+        userId,
+        type: "TRANSACTION",
+        title: "Sell Order Placed",
+        message: `Your sell order for ${requestedUnits.toFixed(4)} units of ${fundCode} has been submitted and is pending approval.`,
+        link: "/transactions",
+      },
+    }),
+  ]);
 
   return NextResponse.json({
     id: transaction.id,

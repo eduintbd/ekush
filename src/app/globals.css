@@ -6,29 +6,43 @@
   --ekush-orange: #F27023;
   --ekush-orange-dark: #e85d04;
   --ekush-orange-light: #ffcfb2;
+  --page-bg: #EFF1F7;
+  --sidebar-bg: #FFFFFF;
+  --sidebar-shadow: 0 0 40px #EFF1F7;
+  --text-dark: #222222;
+  --text-body: #828BB2;
+  --text-muted: #B2B5C0;
+  --text-label: #707070;
+  --navy: #2E4765;
+  --input-bg: #fef1f2;
+  --input-border: #BBC1C9;
+  --card-shadow: 0 7px 15px rgba(80, 143, 244, 0.15);
+  --icon-muted: #f8dbdd;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: #f8f9fa;
-  color: #495057;
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--page-bg);
+  color: var(--text-dark);
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: #333333;
+  color: var(--text-dark);
+  font-family: "Rajdhani", "Poppins", sans-serif;
+  font-weight: 600;
 }
 
 ::-webkit-scrollbar {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #ddd;
 }
 ::-webkit-scrollbar-thumb {
-  background: #ccc;
+  background: #f8dbdd;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #999;
+  background: #e8cbcd;
 }

@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  // Notification depends on ticket.trackingNumber and ticket.id, so it runs after ticket creation
   await prisma.notification.create({
     data: {
       userId,

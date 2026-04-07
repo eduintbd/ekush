@@ -20,7 +20,7 @@ export default async function PortfolioPage() {
   const investorId = (session?.user as any)?.investorId;
 
   if (!investorId) {
-    return <p className="text-gray-500 text-center py-20">Investor profile not found.</p>;
+    return <p className="text-text-body text-center py-20">Investor profile not found.</p>;
   }
 
   const holdings = await getHoldings(investorId);
@@ -28,17 +28,14 @@ export default async function PortfolioPage() {
   if (holdings.length === 0) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">No fund holdings found.</p>
+        <p className="text-text-body">No fund holdings found.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Portfolio</h1>
-        <p className="text-sm text-gray-500">Detailed view of your fund holdings</p>
-      </div>
+      <h1 className="text-[20px] font-semibold text-text-dark font-rajdhani">Portfolio</h1>
 
       {holdings.map((h) => {
         const marketValue = Number(h.totalMarketValue);
@@ -51,38 +48,38 @@ export default async function PortfolioPage() {
           <Card key={h.id}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
-                <CardTitle className="text-lg">{h.fund.name}</CardTitle>
-                <p className="text-sm text-gray-500">{h.fund.code}</p>
+                <CardTitle className="text-[16px]">{h.fund.name}</CardTitle>
+                <p className="text-[13px] text-text-body">{h.fund.code}</p>
               </div>
               <Link
                 href={`/portfolio/${h.fund.code}`}
-                className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                className="text-ekush-orange hover:underline flex items-center gap-1 text-[13px]"
               >
                 Details <ExternalLink className="w-3.5 h-3.5" />
               </Link>
             </CardHeader>
             <CardContent>
               {/* Summary Row */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 p-5 bg-page-bg rounded-[10px]">
                 <div>
-                  <p className="text-xs text-gray-500">Current Units</p>
-                  <p className="font-semibold">{formatNumber(Number(h.totalCurrentUnits), 4)}</p>
+                  <p className="text-[12px] text-text-body">Current Units</p>
+                  <p className="font-semibold text-text-dark font-rajdhani text-[18px]">{formatNumber(Number(h.totalCurrentUnits), 4)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Avg Cost</p>
-                  <p className="font-semibold">{Number(h.avgCost).toFixed(4)}</p>
+                  <p className="text-[12px] text-text-body">Avg Cost</p>
+                  <p className="font-semibold text-text-dark font-rajdhani text-[18px]">{Number(h.avgCost).toFixed(4)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">NAV</p>
-                  <p className="font-semibold">{Number(h.nav).toFixed(4)}</p>
+                  <p className="text-[12px] text-text-body">NAV</p>
+                  <p className="font-semibold text-text-dark font-rajdhani text-[18px]">{Number(h.nav).toFixed(4)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Market Value</p>
-                  <p className="font-semibold">{formatBDT(marketValue)}</p>
+                  <p className="text-[12px] text-text-body">Market Value</p>
+                  <p className="font-semibold text-text-dark font-rajdhani text-[18px]">{formatBDT(marketValue)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Gain/Loss</p>
-                  <p className={`font-semibold ${isPositive ? "text-green-600" : "text-red-600"}`}>
+                  <p className="text-[12px] text-text-body">Gain/Loss</p>
+                  <p className={`font-semibold font-rajdhani text-[18px] ${isPositive ? "text-green-500" : "text-red-500"}`}>
                     {formatBDT(gain)} ({formatPercent(gainPct)})
                   </p>
                 </div>
@@ -91,7 +88,7 @@ export default async function PortfolioPage() {
               {/* LS vs SIP Breakdown */}
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="border-0 hover:bg-transparent">
                     <TableHead>Channel</TableHead>
                     <TableHead className="text-right">Units Bought</TableHead>
                     <TableHead className="text-right">Units Sold</TableHead>
@@ -104,9 +101,7 @@ export default async function PortfolioPage() {
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell>
-                      <Badge variant="default">Lump Sum</Badge>
-                    </TableCell>
+                    <TableCell><Badge variant="default">Lump Sum</Badge></TableCell>
                     <TableCell className="text-right">{formatNumber(Number(h.lsUnitsBought), 4)}</TableCell>
                     <TableCell className="text-right">{formatNumber(Number(h.lsUnitsSold), 4)}</TableCell>
                     <TableCell className="text-right">{formatNumber(Number(h.lsCurrentUnits), 4)}</TableCell>
@@ -116,9 +111,7 @@ export default async function PortfolioPage() {
                     <TableCell className="text-right">{Number(h.lsAvgCost).toFixed(4)}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>
-                      <Badge variant="success">SIP</Badge>
-                    </TableCell>
+                    <TableCell><Badge variant="success">SIP</Badge></TableCell>
                     <TableCell className="text-right">{formatNumber(Number(h.sipUnitsBought), 4)}</TableCell>
                     <TableCell className="text-right">{formatNumber(Number(h.sipUnitsSold), 4)}</TableCell>
                     <TableCell className="text-right">{formatNumber(Number(h.sipCurrentUnits), 4)}</TableCell>
@@ -131,24 +124,24 @@ export default async function PortfolioPage() {
               </Table>
 
               {/* Additional Metrics */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 p-4 bg-gray-50 rounded-lg text-sm">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 p-5 bg-page-bg rounded-[10px] text-[13px]">
                 <div>
-                  <p className="text-gray-500">Sellable Units</p>
-                  <p className="font-medium">{formatNumber(Number(h.totalSellableUnits), 4)}</p>
+                  <p className="text-text-body">Sellable Units</p>
+                  <p className="font-medium text-text-dark">{formatNumber(Number(h.totalSellableUnits), 4)}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Realized Gain</p>
-                  <p className="font-medium">{formatBDT(Number(h.totalRealizedGain))}</p>
+                  <p className="text-text-body">Realized Gain</p>
+                  <p className="font-medium text-text-dark">{formatBDT(Number(h.totalRealizedGain))}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Unrealized Gain</p>
-                  <p className={`font-medium ${Number(h.totalUnrealizedGain) >= 0 ? "text-green-600" : "text-red-600"}`}>
+                  <p className="text-text-body">Unrealized Gain</p>
+                  <p className={`font-medium ${Number(h.totalUnrealizedGain) >= 0 ? "text-green-500" : "text-red-500"}`}>
                     {formatBDT(Number(h.totalUnrealizedGain))}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Weight in Fund</p>
-                  <p className="font-medium">{Number(h.percentUnitsHold).toFixed(4)}%</p>
+                  <p className="text-text-body">Weight in Fund</p>
+                  <p className="font-medium text-text-dark">{Number(h.percentUnitsHold).toFixed(4)}%</p>
                 </div>
               </div>
             </CardContent>

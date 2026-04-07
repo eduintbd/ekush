@@ -58,22 +58,22 @@ export default function GoalsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Goal-Based Investing</h1>
-          <p className="text-sm text-gray-500">Map your investments to life goals and track progress</p>
+          <h1 className="text-[20px] font-semibold text-text-dark font-rajdhani">Goal-Based Investing</h1>
+          <p className="text-sm text-text-body">Map your investments to life goals and track progress</p>
         </div>
-        <Button onClick={() => setShowCreate(!showCreate)} className="bg-[#1e3a5f] hover:bg-[#2d5a8f] text-white">
+        <Button onClick={() => setShowCreate(!showCreate)} className="bg-ekush-orange hover:bg-ekush-orange/90 text-white rounded-[5px] text-[13px]">
           <Plus className="w-4 h-4 mr-1" /> New Goal
         </Button>
       </div>
 
       {showCreate && (
-        <Card className="border-blue-200">
-          <CardHeader><CardTitle className="text-base">Create Goal</CardTitle></CardHeader>
+        <Card className="border-ekush-orange/30 rounded-[10px] shadow-card">
+          <CardHeader><CardTitle className="text-[16px] font-semibold text-text-dark">Create Goal</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3 mb-4">
               {PRESET_GOALS.map(g => (
                 <button key={g.name} type="button" onClick={() => setForm({ ...form, name: g.name })}
-                  className={`p-3 rounded-lg border text-left text-sm transition-colors ${form.name === g.name ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"}`}>
+                  className={`p-3 rounded-[10px] border text-left text-sm transition-colors ${form.name === g.name ? "border-ekush-orange bg-ekush-orange/10" : "border-input-border hover:bg-page-bg"}`}>
                   <span className="text-lg mr-2">{g.icon}</span>{g.name}
                 </button>
               ))}
@@ -86,8 +86,8 @@ export default function GoalsPage() {
               <Input label="Target Date" type="date" value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} />
               <Input label="Expected Annual Return (%)" type="number" value={form.assumedReturn} onChange={(e) => setForm({ ...form, assumedReturn: e.target.value })} />
               <div className="flex gap-2">
-                <Button onClick={handleCreate} className="bg-[#1e3a5f] hover:bg-[#2d5a8f] text-white">Create Goal</Button>
-                <Button onClick={() => setShowCreate(false)} variant="outline">Cancel</Button>
+                <Button onClick={handleCreate} className="bg-ekush-orange hover:bg-ekush-orange/90 text-white rounded-[5px] text-[13px]">Create Goal</Button>
+                <Button onClick={() => setShowCreate(false)} variant="outline" className="rounded-[5px] text-[13px]">Cancel</Button>
               </div>
             </div>
           </CardContent>
@@ -102,14 +102,14 @@ export default function GoalsPage() {
           const yearsLeft = Math.max(0, (new Date(goal.deadline).getTime() - Date.now()) / (365.25 * 24 * 60 * 60 * 1000));
 
           return (
-            <Card key={goal.id}>
+            <Card key={goal.id} className="rounded-[10px] shadow-card">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                      <Target className="w-5 h-5 text-blue-600" /> {goal.name}
+                    <h3 className="text-[16px] font-semibold text-text-dark flex items-center gap-2">
+                      <Target className="w-5 h-5 text-ekush-orange" /> {goal.name}
                     </h3>
-                    <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-3">
+                    <p className="text-xs text-text-body mt-0.5 flex items-center gap-3">
                       <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(goal.deadline).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}</span>
                       <span>{yearsLeft.toFixed(1)} years left</span>
                     </p>
@@ -121,26 +121,26 @@ export default function GoalsPage() {
 
                 {/* Progress Bar */}
                 <div className="mb-4">
-                  <div className="h-3 rounded-full bg-gray-200 overflow-hidden">
-                    <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-green-500 transition-all" style={{ width: `${Math.min(100, progress)}%` }} />
+                  <div className="h-3 rounded-full bg-page-bg overflow-hidden">
+                    <div className="h-full rounded-full bg-gradient-to-r from-ekush-orange to-green-500 transition-all" style={{ width: `${Math.min(100, progress)}%` }} />
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-text-body mt-1">
                     <span>৳{goal.currentAmount.toLocaleString("en-IN")}</span>
                     <span>৳{goal.targetAmount.toLocaleString("en-IN")}</span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-xs text-gray-500">Remaining</p>
-                    <p className="font-semibold">৳{remaining.toLocaleString("en-IN")}</p>
+                  <div className="bg-page-bg rounded-[10px] p-3">
+                    <p className="text-xs text-text-body">Remaining</p>
+                    <p className="font-semibold text-text-dark font-rajdhani">৳{remaining.toLocaleString("en-IN")}</p>
                   </div>
-                  <div className="bg-blue-50 rounded-lg p-3">
-                    <p className="text-xs text-gray-500 flex items-center gap-1"><PiggyBank className="w-3 h-3" /> Monthly SIP Needed</p>
-                    <p className="font-semibold text-blue-700">৳{goal.monthlySipNeeded.toLocaleString("en-IN")}</p>
+                  <div className="bg-ekush-orange/10 rounded-[10px] p-3">
+                    <p className="text-xs text-text-body flex items-center gap-1"><PiggyBank className="w-3 h-3" /> Monthly SIP Needed</p>
+                    <p className="font-semibold text-ekush-orange font-rajdhani">৳{goal.monthlySipNeeded.toLocaleString("en-IN")}</p>
                   </div>
-                  <div className="bg-green-50 rounded-lg p-3">
-                    <p className="text-xs text-gray-500 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> On Track?</p>
+                  <div className="bg-green-50 rounded-[10px] p-3">
+                    <p className="text-xs text-text-body flex items-center gap-1"><TrendingUp className="w-3 h-3" /> On Track?</p>
                     <p className="font-semibold text-green-700">{progress >= (100 - yearsLeft / (yearsLeft + 5) * 100) ? "Yes" : "Needs Attention"}</p>
                   </div>
                 </div>

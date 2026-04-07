@@ -29,7 +29,7 @@ export default async function DocumentsPage() {
   const investorId = (session?.user as any)?.investorId;
 
   if (!investorId) {
-    return <p className="text-gray-500 text-center py-20">Investor profile not found.</p>;
+    return <p className="text-text-body text-center py-20">Investor profile not found.</p>;
   }
 
   const documents = await prisma.document.findMany({
@@ -47,19 +47,19 @@ export default async function DocumentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Document Vault</h1>
-        <p className="text-sm text-gray-500">All your investment documents in one secure place</p>
+        <h1 className="text-[20px] font-semibold text-text-dark font-rajdhani">Document Vault</h1>
+        <p className="text-sm text-text-body">All your investment documents in one secure place</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Document List */}
         <div className="lg:col-span-2 space-y-4">
           {documents.length === 0 ? (
-            <Card>
+            <Card className="rounded-[10px] shadow-card">
               <CardContent className="py-16 text-center">
-                <FolderOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">No documents yet.</p>
-                <p className="text-gray-400 text-xs mt-1">
+                <FolderOpen className="w-12 h-12 text-text-muted mx-auto mb-3" />
+                <p className="text-text-body">No documents yet.</p>
+                <p className="text-text-muted text-xs mt-1">
                   Upload your first document using the form on the right.
                 </p>
               </CardContent>
@@ -68,10 +68,10 @@ export default async function DocumentsPage() {
             Object.entries(grouped).map(([type, docs]) => {
               const Icon = typeIcons[type] || FileText;
               return (
-                <Card key={type}>
+                <Card key={type} className="rounded-[10px] shadow-card">
                   <CardHeader className="py-4">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <Icon className="w-4 h-4" />
+                    <CardTitle className="text-sm flex items-center gap-2 text-text-dark">
+                      <Icon className="w-4 h-4 text-ekush-orange" />
                       {typeLabels[type] || type}
                       <Badge variant="outline">{docs.length}</Badge>
                     </CardTitle>
@@ -79,12 +79,12 @@ export default async function DocumentsPage() {
                   <CardContent className="pt-0">
                     <div className="space-y-2">
                       {docs.map((doc) => (
-                        <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div key={doc.id} className="flex items-center justify-between p-3 bg-page-bg rounded-[10px] hover:bg-page-bg/80 transition-colors">
                           <div className="flex items-center gap-3">
-                            <FileText className="w-4 h-4 text-gray-400 shrink-0" />
+                            <FileText className="w-4 h-4 text-text-muted shrink-0" />
                             <div>
-                              <p className="font-medium text-sm text-gray-800">{doc.fileName}</p>
-                              <p className="text-xs text-gray-500">{formatDate(doc.createdAt)}</p>
+                              <p className="font-medium text-sm text-text-dark">{doc.fileName}</p>
+                              <p className="text-xs text-text-body">{formatDate(doc.createdAt)}</p>
                             </div>
                           </div>
                           <Badge variant="outline" className="text-[10px]">
@@ -102,9 +102,9 @@ export default async function DocumentsPage() {
 
         {/* Upload Form */}
         <div>
-          <Card>
+          <Card className="rounded-[10px] shadow-card">
             <CardHeader>
-              <CardTitle className="text-base">Upload Document</CardTitle>
+              <CardTitle className="text-[16px] font-semibold text-text-dark">Upload Document</CardTitle>
             </CardHeader>
             <CardContent>
               <DocumentUploadForm />
@@ -112,19 +112,19 @@ export default async function DocumentsPage() {
           </Card>
 
           {/* Quick Stats */}
-          <Card className="mt-4">
+          <Card className="mt-4 rounded-[10px] shadow-card">
             <CardContent className="p-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">Document Summary</p>
+              <p className="text-sm font-medium text-text-dark mb-2">Document Summary</p>
               <div className="space-y-1">
                 {Object.entries(grouped).map(([type, docs]) => (
                   <div key={type} className="flex justify-between text-xs">
-                    <span className="text-gray-500">{typeLabels[type] || type}</span>
-                    <span className="font-medium">{docs.length}</span>
+                    <span className="text-text-body">{typeLabels[type] || type}</span>
+                    <span className="font-medium text-text-dark">{docs.length}</span>
                   </div>
                 ))}
                 <div className="flex justify-between text-xs pt-1 border-t mt-1">
-                  <span className="text-gray-700 font-medium">Total</span>
-                  <span className="font-bold">{documents.length}</span>
+                  <span className="text-text-dark font-medium">Total</span>
+                  <span className="font-bold text-text-dark">{documents.length}</span>
                 </div>
               </div>
             </CardContent>

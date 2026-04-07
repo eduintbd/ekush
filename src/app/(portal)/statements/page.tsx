@@ -4,8 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { formatBDT, formatNumber, formatDate } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { AllocationChart } from "@/components/dashboard/allocation-chart";
 import { DownloadPortfolioStatement, DownloadTaxCertificate } from "@/components/statements/pdf-buttons";
-import { FileText, Shield, Receipt, Download } from "lucide-react";
+import { Shield, Eye, Plus } from "lucide-react";
 
 async function getTaxCertificates(investorId: string) {
   return prisma.taxCertificate.findMany({
@@ -35,7 +37,7 @@ export default async function StatementsPage() {
   const investorId = (session?.user as any)?.investorId;
 
   if (!investorId) {
-    return <p className="text-gray-500 text-center py-20">Investor profile not found.</p>;
+    return <p className="text-text-body text-center py-20">Investor profile not found.</p>;
   }
 
   const [taxCerts, dividends, holdings] = await Promise.all([
@@ -44,7 +46,23 @@ export default async function StatementsPage() {
     getHoldings(investorId),
   ]);
 
-  // Calculate capital gains
+  // Calculate totals and chart data
+  let totalMarketValue = 0;
+  const fundsForChart = holdings.map((h) => {
+    const mv = Number(h.totalMarketValue);
+    totalMarketValue += mv;
+    return {
+      fundCode: h.fund.code,
+      fundName: h.fund.name,
+      marketValue: mv,
+      weight: 0,
+    };
+  });
+  fundsForChart.forEach((f) => {
+    f.weight = totalMarketValue > 0 ? (f.marketValue / totalMarketValue) * 100 : 0;
+  });
+
+  // Capital gains
   const capitalGains = holdings.map((h) => ({
     fundCode: h.fund.code,
     fundName: h.fund.name,
@@ -53,144 +71,143 @@ export default async function StatementsPage() {
     costValue: Number(h.totalCostValueCurrent),
     marketValue: Number(h.totalMarketValue),
   }));
-
   const totalRealized = capitalGains.reduce((s, h) => s + h.realizedGain, 0);
   const totalUnrealized = capitalGains.reduce((s, h) => s + h.unrealizedGain, 0);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Statements & Reports</h1>
-          <p className="text-sm text-gray-500">Download your financial statements and tax documents</p>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="space-y-8">
+      {/* Charts Row — Fund Weight + Portfolio */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardContent className="p-5">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                <FileText className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-800 text-sm">Portfolio Statement</p>
-                <p className="text-xs text-gray-500">Current holdings summary with gain/loss</p>
-              </div>
-            </div>
+          <CardHeader>
+            <CardTitle className="text-[16px]">Fund weight</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AllocationChart funds={fundsForChart} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-[16px]">Portfolio Performance</CardTitle>
             <DownloadPortfolioStatement />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-5">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-                <Receipt className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-800 text-sm">Transaction Report</p>
-                <p className="text-xs text-gray-500">Full transaction history export</p>
-              </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] flex items-center justify-center text-text-body text-sm">
+              {/* Performance chart placeholder — uses NAV history data */}
+              <p>Performance chart based on NAV history</p>
             </div>
-            <a href="/transactions" className="text-sm text-blue-600 hover:underline">
-              View Transactions
-            </a>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-5">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center">
-                <Download className="w-5 h-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-800 text-sm">Dividend Statement</p>
-                <p className="text-xs text-gray-500">Dividend payment history</p>
-              </div>
-            </div>
-            <Badge variant="outline">{dividends.length} records</Badge>
           </CardContent>
         </Card>
       </div>
+
+      {/* Portfolio Table */}
+      <Card>
+        <CardContent className="p-0 pt-5">
+          <div className="px-6 pb-4">
+            <h3 className="text-[16px] font-semibold text-text-dark font-rajdhani">Portfolio</h3>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow className="border-0 hover:bg-transparent">
+                <TableHead>Investments</TableHead>
+                <TableHead className="text-right">Mkt Value</TableHead>
+                <TableHead className="w-12"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {holdings.map((h) => (
+                <TableRow key={h.id}>
+                  <TableCell className="font-medium text-text-dark">{h.fund.name}</TableCell>
+                  <TableCell className="text-right font-medium text-text-dark">
+                    {formatNumber(Number(h.totalMarketValue), 0)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Plus className="w-4 h-4 text-text-body cursor-pointer hover:text-ekush-orange" />
+                  </TableCell>
+                </TableRow>
+              ))}
+              <TableRow className="bg-page-bg">
+                <TableCell className="font-semibold text-text-dark">Total</TableCell>
+                <TableCell className="text-right font-semibold text-text-dark">
+                  {formatNumber(totalMarketValue, 0)}
+                </TableCell>
+                <TableCell className="text-center">
+                  <Plus className="w-4 h-4 text-text-body cursor-pointer hover:text-ekush-orange" />
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       {/* Capital Gain/Loss Report */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Capital Gain / Loss Report</CardTitle>
+          <CardTitle className="text-[16px]">Capital Gain / Loss Report</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-gray-500">
-                  <th className="pb-2 font-medium">Fund</th>
-                  <th className="pb-2 font-medium text-right">Cost Value</th>
-                  <th className="pb-2 font-medium text-right">Market Value</th>
-                  <th className="pb-2 font-medium text-right">Realized Gain</th>
-                  <th className="pb-2 font-medium text-right">Unrealized Gain</th>
-                  <th className="pb-2 font-medium text-right">Total Gain</th>
-                </tr>
-              </thead>
-              <tbody>
-                {capitalGains.map((cg) => (
-                  <tr key={cg.fundCode} className="border-b last:border-0">
-                    <td className="py-2.5 font-medium">{cg.fundCode}</td>
-                    <td className="py-2.5 text-right">{formatBDT(cg.costValue)}</td>
-                    <td className="py-2.5 text-right">{formatBDT(cg.marketValue)}</td>
-                    <td className={`py-2.5 text-right ${cg.realizedGain >= 0 ? "text-green-600" : "text-red-600"}`}>
-                      {formatBDT(cg.realizedGain)}
-                    </td>
-                    <td className={`py-2.5 text-right ${cg.unrealizedGain >= 0 ? "text-green-600" : "text-red-600"}`}>
-                      {formatBDT(cg.unrealizedGain)}
-                    </td>
-                    <td className={`py-2.5 text-right font-semibold ${(cg.realizedGain + cg.unrealizedGain) >= 0 ? "text-green-600" : "text-red-600"}`}>
-                      {formatBDT(cg.realizedGain + cg.unrealizedGain)}
-                    </td>
-                  </tr>
-                ))}
-                <tr className="bg-gray-50 font-semibold">
-                  <td className="py-2.5">Total</td>
-                  <td className="py-2.5 text-right">{formatBDT(capitalGains.reduce((s, h) => s + h.costValue, 0))}</td>
-                  <td className="py-2.5 text-right">{formatBDT(capitalGains.reduce((s, h) => s + h.marketValue, 0))}</td>
-                  <td className={`py-2.5 text-right ${totalRealized >= 0 ? "text-green-600" : "text-red-600"}`}>
-                    {formatBDT(totalRealized)}
-                  </td>
-                  <td className={`py-2.5 text-right ${totalUnrealized >= 0 ? "text-green-600" : "text-red-600"}`}>
-                    {formatBDT(totalUnrealized)}
-                  </td>
-                  <td className={`py-2.5 text-right ${(totalRealized + totalUnrealized) >= 0 ? "text-green-600" : "text-red-600"}`}>
-                    {formatBDT(totalRealized + totalUnrealized)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-0 hover:bg-transparent">
+                <TableHead>Fund</TableHead>
+                <TableHead className="text-right">Cost Value</TableHead>
+                <TableHead className="text-right">Market Value</TableHead>
+                <TableHead className="text-right">Realized Gain</TableHead>
+                <TableHead className="text-right">Unrealized Gain</TableHead>
+                <TableHead className="text-right">Total Gain</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {capitalGains.map((cg) => (
+                <TableRow key={cg.fundCode}>
+                  <TableCell className="font-medium text-text-dark">{cg.fundCode}</TableCell>
+                  <TableCell className="text-right">{formatBDT(cg.costValue)}</TableCell>
+                  <TableCell className="text-right">{formatBDT(cg.marketValue)}</TableCell>
+                  <TableCell className={`text-right ${cg.realizedGain >= 0 ? "text-green-500" : "text-red-500"}`}>
+                    {formatBDT(cg.realizedGain)}
+                  </TableCell>
+                  <TableCell className={`text-right ${cg.unrealizedGain >= 0 ? "text-green-500" : "text-red-500"}`}>
+                    {formatBDT(cg.unrealizedGain)}
+                  </TableCell>
+                  <TableCell className={`text-right font-semibold ${(cg.realizedGain + cg.unrealizedGain) >= 0 ? "text-green-500" : "text-red-500"}`}>
+                    {formatBDT(cg.realizedGain + cg.unrealizedGain)}
+                  </TableCell>
+                </TableRow>
+              ))}
+              <TableRow className="bg-page-bg">
+                <TableCell className="font-semibold text-text-dark">Total</TableCell>
+                <TableCell className="text-right font-semibold">{formatBDT(capitalGains.reduce((s, h) => s + h.costValue, 0))}</TableCell>
+                <TableCell className="text-right font-semibold">{formatBDT(capitalGains.reduce((s, h) => s + h.marketValue, 0))}</TableCell>
+                <TableCell className={`text-right font-semibold ${totalRealized >= 0 ? "text-green-500" : "text-red-500"}`}>{formatBDT(totalRealized)}</TableCell>
+                <TableCell className={`text-right font-semibold ${totalUnrealized >= 0 ? "text-green-500" : "text-red-500"}`}>{formatBDT(totalUnrealized)}</TableCell>
+                <TableCell className={`text-right font-semibold ${(totalRealized + totalUnrealized) >= 0 ? "text-green-500" : "text-red-500"}`}>{formatBDT(totalRealized + totalUnrealized)}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
 
       {/* Tax Certificates */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
+        <CardHeader>
+          <CardTitle className="text-[16px] flex items-center gap-2">
             <Shield className="w-4 h-4" /> Tax Certificates
           </CardTitle>
         </CardHeader>
         <CardContent>
           {taxCerts.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center py-6">No tax certificates available.</p>
+            <p className="text-text-body text-sm text-center py-6">No tax certificates available.</p>
           ) : (
             <div className="space-y-3">
               {taxCerts.map((tc) => (
-                <div key={tc.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div key={tc.id} className="flex items-center justify-between p-4 bg-page-bg rounded-[10px]">
                   <div>
-                    <p className="font-medium text-gray-800">{tc.fund.code} - Tax Certificate</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="font-medium text-text-dark">{tc.fund.code} - Tax Certificate</p>
+                    <p className="text-xs text-text-body mt-1">
                       Period: {tc.periodStart ? formatDate(tc.periodStart) : "N/A"} - {tc.periodEnd ? formatDate(tc.periodEnd) : "N/A"}
                     </p>
-                    <div className="flex gap-4 mt-1 text-xs text-gray-600">
+                    <div className="flex gap-4 mt-1 text-xs text-text-body">
                       <span>Realized Gain: {formatBDT(Number(tc.totalRealizedGain))}</span>
                       <span>Tax: {formatBDT(Number(tc.totalTax))}</span>
                       <span>Net Dividend: {formatBDT(Number(tc.totalNetDividend))}</span>
@@ -207,46 +224,44 @@ export default async function StatementsPage() {
       {/* Dividends */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Dividend History</CardTitle>
+          <CardTitle className="text-[16px]">Dividend History</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {dividends.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center py-6">No dividend records available.</p>
+            <p className="text-text-body text-sm text-center py-6">No dividend records available.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-gray-500">
-                    <th className="pb-2 font-medium">Fund</th>
-                    <th className="pb-2 font-medium">Year</th>
-                    <th className="pb-2 font-medium text-right">Units</th>
-                    <th className="pb-2 font-medium text-right">DPS</th>
-                    <th className="pb-2 font-medium text-right">Gross</th>
-                    <th className="pb-2 font-medium text-right">Tax</th>
-                    <th className="pb-2 font-medium text-right">Net</th>
-                    <th className="pb-2 font-medium">Option</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dividends.map((d) => (
-                    <tr key={d.id} className="border-b last:border-0">
-                      <td className="py-2.5">{d.fund.code}</td>
-                      <td className="py-2.5">{d.accountingYear || "N/A"}</td>
-                      <td className="py-2.5 text-right">{formatNumber(Number(d.totalUnits), 4)}</td>
-                      <td className="py-2.5 text-right">{Number(d.dividendPerUnit).toFixed(4)}</td>
-                      <td className="py-2.5 text-right">{formatBDT(Number(d.grossDividend))}</td>
-                      <td className="py-2.5 text-right">{formatBDT(Number(d.taxAmount))}</td>
-                      <td className="py-2.5 text-right font-medium">{formatBDT(Number(d.netDividend))}</td>
-                      <td className="py-2.5">
-                        <Badge variant={d.dividendOption === "CIP" ? "default" : "outline"}>
-                          {d.dividendOption}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-0 hover:bg-transparent">
+                  <TableHead>Fund</TableHead>
+                  <TableHead>Year</TableHead>
+                  <TableHead className="text-right">Units</TableHead>
+                  <TableHead className="text-right">DPS</TableHead>
+                  <TableHead className="text-right">Gross</TableHead>
+                  <TableHead className="text-right">Tax</TableHead>
+                  <TableHead className="text-right">Net</TableHead>
+                  <TableHead>Option</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {dividends.map((d) => (
+                  <TableRow key={d.id}>
+                    <TableCell className="text-text-dark">{d.fund.code}</TableCell>
+                    <TableCell>{d.accountingYear || "N/A"}</TableCell>
+                    <TableCell className="text-right">{formatNumber(Number(d.totalUnits), 4)}</TableCell>
+                    <TableCell className="text-right">{Number(d.dividendPerUnit).toFixed(4)}</TableCell>
+                    <TableCell className="text-right">{formatBDT(Number(d.grossDividend))}</TableCell>
+                    <TableCell className="text-right">{formatBDT(Number(d.taxAmount))}</TableCell>
+                    <TableCell className="text-right font-medium text-text-dark">{formatBDT(Number(d.netDividend))}</TableCell>
+                    <TableCell>
+                      <Badge variant={d.dividendOption === "CIP" ? "default" : "outline"}>
+                        {d.dividendOption}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

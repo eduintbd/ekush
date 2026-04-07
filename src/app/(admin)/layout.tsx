@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { AuthProvider } from "@/components/layout/session-provider";
+import Link from "next/link";
 
 export default async function AdminLayout({
   children,
@@ -23,24 +24,26 @@ export default async function AdminLayout({
 
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-[#f8f9fa]">
-        {/* Admin Nav - dark with orange accents */}
-        <nav className="bg-[rgba(0,0,0,0.95)] backdrop-blur-[10px] text-white px-6 py-3.5 flex items-center justify-between sticky top-0 z-50">
+      <div className="min-h-screen bg-page-bg">
+        {/* Admin Nav — white with orange accents */}
+        <nav className="bg-white shadow-sidebar px-6 py-3.5 flex items-center justify-between sticky top-0 z-50">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-[#F27023] to-[#e85d04] rounded-[8px] flex items-center justify-center font-bold text-white text-sm shadow-[0_4px_15px_rgba(242,112,35,0.3)]">
+            <div className="w-8 h-8 bg-ekush-orange rounded-lg flex items-center justify-center font-bold text-white text-sm">
               E
             </div>
-            <span className="font-semibold text-[14px]">Ekush WML <span className="text-[#F27023]">Admin</span></span>
+            <span className="font-semibold text-[14px] text-navy font-rajdhani">
+              Ekush WML <span className="text-ekush-orange">Admin</span>
+            </span>
           </div>
           <div className="flex items-center gap-6 text-[13px] font-medium">
-            <a href="/admin/dashboard" className="text-white/60 hover:text-[#F27023] transition-colors">Dashboard</a>
-            <a href="/admin/investors" className="text-white/60 hover:text-[#F27023] transition-colors">Investors</a>
-            <a href="/admin/approvals" className="text-white/60 hover:text-[#F27023] transition-colors">Approvals</a>
-            <a href="/admin/nav-entry" className="text-white/60 hover:text-[#F27023] transition-colors">NAV Entry</a>
-            <a href="/admin/tickets" className="text-white/60 hover:text-[#F27023] transition-colors">Tickets</a>
-            <a href="/admin/content" className="text-white/60 hover:text-[#F27023] transition-colors">Content</a>
-            <a href="/admin/audit-log" className="text-white/60 hover:text-[#F27023] transition-colors">Audit Log</a>
-            <a href="/dashboard" className="text-[#F27023] hover:text-[#ffcfb2] transition-colors">Portal</a>
+            <Link href="/admin/dashboard" className="text-text-dark hover:text-ekush-orange transition-colors">Dashboard</Link>
+            <Link href="/admin/investors" className="text-text-dark hover:text-ekush-orange transition-colors">Investors</Link>
+            <Link href="/admin/approvals" className="text-text-dark hover:text-ekush-orange transition-colors">Approvals</Link>
+            <Link href="/admin/nav-entry" className="text-text-dark hover:text-ekush-orange transition-colors">NAV Entry</Link>
+            <Link href="/admin/tickets" className="text-text-dark hover:text-ekush-orange transition-colors">Tickets</Link>
+            <Link href="/admin/content" className="text-text-dark hover:text-ekush-orange transition-colors">Content</Link>
+            <Link href="/admin/audit-log" className="text-text-dark hover:text-ekush-orange transition-colors">Audit Log</Link>
+            <Link href="/dashboard" className="text-ekush-orange hover:text-ekush-orange-dark transition-colors">Portal</Link>
           </div>
         </nav>
         <main className="p-6 max-w-7xl mx-auto">{children}</main>

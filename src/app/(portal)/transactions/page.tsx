@@ -2,162 +2,132 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatBDT, formatNumber, formatDate } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import Link from "next/link";
-import { ShoppingCart, ArrowDownCircle, Calculator } from "lucide-react";
+import { Download } from "lucide-react";
 
-async function getTransactions(investorId: string) {
+const PAGE_SIZE = 50;
+
+async function getTransactions(investorId: string, page: number) {
   return prisma.transaction.findMany({
     where: { investorId },
-    include: { fund: true },
+    include: { fund: { select: { code: true, name: true } } },
     orderBy: { orderDate: "desc" },
+    take: PAGE_SIZE,
+    skip: (page - 1) * PAGE_SIZE,
   });
 }
 
-export default async function TransactionsPage() {
+export default async function TransactionsPage({
+  searchParams,
+}: {
+  searchParams: { page?: string };
+}) {
   const session = await getServerSession(authOptions);
   const investorId = (session?.user as any)?.investorId;
 
   if (!investorId) {
-    return <p className="text-gray-500 text-center py-20">Investor profile not found.</p>;
+    return <p className="text-text-body text-center py-20">Investor profile not found.</p>;
   }
 
-  const transactions = await getTransactions(investorId);
-
-  const totalBuys = transactions.filter((t) => t.direction === "BUY");
-  const totalSells = transactions.filter((t) => t.direction === "SELL");
-  const pendingOrders = transactions.filter((t) => t.status === "PENDING" || t.status === "IN_PROCESS");
-  const totalBuyAmount = totalBuys.reduce((sum, t) => sum + Number(t.amount), 0);
-  const totalSellAmount = totalSells.reduce((sum, t) => sum + Number(t.amount), 0);
+  const page = Math.max(1, parseInt(searchParams.page || "1"));
+  const transactions = await getTransactions(investorId, page);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Transactions</h1>
-          <p className="text-sm text-gray-500">Place orders and view transaction history</p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/transactions/buy">
-            <Button className="bg-[#1e3a5f] hover:bg-[#2d5a8f] text-white">
-              <ShoppingCart className="w-4 h-4 mr-1" /> Buy
-            </Button>
-          </Link>
-          <Link href="/transactions/sell">
-            <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-50">
-              <ArrowDownCircle className="w-4 h-4 mr-1" /> Sell
-            </Button>
-          </Link>
-        </div>
+      <h1 className="text-[20px] font-semibold text-text-dark font-rajdhani">All Transactions</h1>
+
+      {/* Filter Row */}
+      <div className="flex flex-wrap gap-4">
+        <select className="h-[42px] px-4 bg-input-bg border border-input-border rounded-[5px] text-[13px] text-text-body min-w-[180px] focus:outline-none focus:border-ekush-orange">
+          <option value="">Select a fund</option>
+        </select>
+        <select className="h-[42px] px-4 bg-input-bg border border-input-border rounded-[5px] text-[13px] text-text-body min-w-[180px] focus:outline-none focus:border-ekush-orange">
+          <option value="">Select a year type</option>
+          <option value="calendar">Calendar Year</option>
+          <option value="fiscal">Fiscal Year</option>
+        </select>
+        <select className="h-[42px] px-4 bg-input-bg border border-input-border rounded-[5px] text-[13px] text-text-body min-w-[160px] focus:outline-none focus:border-ekush-orange">
+          <option value="">Select a year</option>
+          <option value="2026">2026</option>
+          <option value="2025">2025</option>
+          <option value="2024">2024</option>
+        </select>
+        <select className="h-[42px] px-4 bg-input-bg border border-input-border rounded-[5px] text-[13px] text-text-body min-w-[160px] focus:outline-none focus:border-ekush-orange">
+          <option value="">Select txn type</option>
+          <option value="BUY">Buy</option>
+          <option value="SELL">Sell</option>
+        </select>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-gray-500">Total Transactions</p>
-            <p className="text-xl font-bold">{transactions.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-gray-500">Purchases</p>
-            <p className="text-xl font-bold text-green-600">{totalBuys.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-gray-500">Total Invested</p>
-            <p className="text-xl font-bold">{formatBDT(totalBuyAmount)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-gray-500">Total Redeemed</p>
-            <p className="text-xl font-bold">{formatBDT(totalSellAmount)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-gray-500">Pending Orders</p>
-            <p className="text-xl font-bold text-amber-600">{pendingOrders.length}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Pending Orders */}
-      {pendingOrders.length > 0 && (
-        <Card className="border-amber-200">
-          <CardHeader>
-            <CardTitle className="text-base text-amber-800">Pending Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {pendingOrders.map((tx) => (
-                <div key={tx.id} className="flex items-center justify-between p-3 bg-amber-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Badge variant={tx.direction === "BUY" ? "success" : "danger"}>{tx.direction}</Badge>
-                    <div>
-                      <p className="text-sm font-medium">{tx.fund.code} - {formatBDT(Number(tx.amount))}</p>
-                      <p className="text-xs text-gray-500">{formatDate(tx.orderDate)} | {formatNumber(Number(tx.units), 4)} units @ {Number(tx.nav).toFixed(4)}</p>
-                    </div>
-                  </div>
-                  <Badge variant="warning">{tx.status}</Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* All Transactions */}
+      {/* Transactions Table */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">All Transactions</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {transactions.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center py-8">No transactions found.</p>
+            <p className="text-text-body text-sm text-center py-8">No transactions found.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Fund</TableHead>
-                    <TableHead>Channel</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead className="text-right">Amount (BDT)</TableHead>
-                    <TableHead className="text-right">NAV</TableHead>
-                    <TableHead className="text-right">Units</TableHead>
-                    <TableHead>Status</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-0 hover:bg-transparent">
+                  <TableHead>No.</TableHead>
+                  <TableHead>Txn date</TableHead>
+                  <TableHead>Txn ID</TableHead>
+                  <TableHead>Fund</TableHead>
+                  <TableHead>Txn type</TableHead>
+                  <TableHead className="text-right">No. of units</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-center">Form</TableHead>
+                  <TableHead className="text-center">Payment slip</TableHead>
+                  <TableHead className="text-center">Ack slip</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((tx, idx) => (
+                  <TableRow key={tx.id}>
+                    <TableCell className="text-text-dark">{idx + 1}</TableCell>
+                    <TableCell className="whitespace-nowrap text-text-dark">{formatDate(tx.orderDate)}</TableCell>
+                    <TableCell className="font-mono text-[12px] text-text-body">{tx.id.slice(0, 16)}</TableCell>
+                    <TableCell className="text-text-dark">{tx.fund.code}</TableCell>
+                    <TableCell>
+                      <span className={tx.direction === "SELL" ? "text-ekush-orange font-medium" : "text-text-dark font-medium"}>
+                        {tx.direction === "BUY" ? "Buy" : "Sell"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right text-text-dark">
+                      {formatNumber(Number(tx.units), 0)}
+                    </TableCell>
+                    <TableCell className="text-right text-text-dark">
+                      {Number(tx.nav).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right text-text-dark">
+                      {formatNumber(Number(tx.amount), 0)}
+                    </TableCell>
+                    <TableCell>
+                      <span className={
+                        tx.status === "EXECUTED" ? "text-green-600 text-[12px] font-medium" :
+                        tx.status === "REJECTED" ? "text-red-500 text-[12px] font-medium" :
+                        "text-[#E09079] text-[12px] font-medium"
+                      }>
+                        {tx.status === "EXECUTED" ? "Active" : tx.status}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Download className="w-4 h-4 text-ekush-orange mx-auto cursor-pointer hover:text-ekush-orange-dark" />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Download className="w-4 h-4 text-ekush-orange mx-auto cursor-pointer hover:text-ekush-orange-dark" />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {tx.status === "EXECUTED" && (
+                        <Download className="w-4 h-4 text-ekush-orange mx-auto cursor-pointer hover:text-ekush-orange-dark" />
+                      )}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transactions.map((tx) => (
-                    <TableRow key={tx.id}>
-                      <TableCell className="whitespace-nowrap">{formatDate(tx.orderDate)}</TableCell>
-                      <TableCell>{tx.fund.code}</TableCell>
-                      <TableCell><Badge variant={tx.channel === "SIP" ? "success" : "default"}>{tx.channel}</Badge></TableCell>
-                      <TableCell><Badge variant={tx.direction === "BUY" ? "success" : "danger"}>{tx.direction}</Badge></TableCell>
-                      <TableCell className="text-right">{formatBDT(Number(tx.amount))}</TableCell>
-                      <TableCell className="text-right">{Number(tx.nav).toFixed(4)}</TableCell>
-                      <TableCell className="text-right">{formatNumber(Number(tx.units), 4)}</TableCell>
-                      <TableCell>
-                        <Badge variant={
-                          tx.status === "EXECUTED" ? "success" :
-                          tx.status === "REJECTED" ? "danger" :
-                          "warning"
-                        }>{tx.status}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

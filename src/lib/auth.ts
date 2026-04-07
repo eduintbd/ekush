@@ -25,70 +25,74 @@ export const authOptions: NextAuthOptions = {
 
         const login = credentials.login.trim();
 
-        // Try to find user by email, phone, or investor code
-        let user = await prisma.user.findFirst({
-          where: {
-            OR: [
-              { email: login },
-              { phone: login },
-              {
-                investor: { investorCode: login.toUpperCase() },
+        try {
+          // Single query with OR — replaces 3 sequential queries
+          let user = await prisma.user.findFirst({
+            where: {
+              OR: [
+                { email: login },
+                { phone: login },
+                { investor: { investorCode: login.toUpperCase() } },
+              ],
+            },
+            include: { investor: true },
+          });
+
+          if (!user) {
+            throw new Error("Invalid credentials");
+          }
+
+          // Check if account is locked
+          if (user.lockedUntil && user.lockedUntil > new Date()) {
+            throw new Error("Account is temporarily locked. Please try again later.");
+          }
+
+          // Verify password
+          const isValid = await compare(credentials.password, user.passwordHash);
+
+          if (!isValid) {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: {
+                failedLoginCount: { increment: 1 },
+                ...(user.failedLoginCount >= 4
+                  ? { lockedUntil: new Date(Date.now() + 30 * 60 * 1000) }
+                  : {}),
               },
-            ],
-          },
-          include: { investor: true },
-        });
+            });
+            throw new Error("Invalid credentials");
+          }
 
-        if (!user) {
-          throw new Error("Invalid credentials");
-        }
+          if (user.status === "SUSPENDED" || user.status === "CLOSED") {
+            throw new Error("Account is not active. Please contact support.");
+          }
 
-        // Check if account is locked
-        if (user.lockedUntil && user.lockedUntil > new Date()) {
-          throw new Error("Account is temporarily locked. Please try again later.");
-        }
-
-        // Verify password
-        const isValid = await compare(credentials.password, user.passwordHash);
-
-        if (!isValid) {
-          // Increment failed login count
+          // Reset failed login count
           await prisma.user.update({
             where: { id: user.id },
             data: {
-              failedLoginCount: { increment: 1 },
-              ...(user.failedLoginCount >= 4
-                ? { lockedUntil: new Date(Date.now() + 30 * 60 * 1000) }
-                : {}),
+              failedLoginCount: 0,
+              lockedUntil: null,
+              lastLoginAt: new Date(),
             },
           });
-          throw new Error("Invalid credentials");
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: (user as any).investor?.name ?? "User",
+            role: user.role,
+            status: user.status,
+            investorId: (user as any).investor?.id,
+            investorCode: (user as any).investor?.investorCode,
+          };
+        } catch (e: any) {
+          if (e.message === "Invalid credentials" || e.message.includes("locked") || e.message.includes("not active")) {
+            throw e;
+          }
+          console.error("Auth error:", e.message);
+          throw new Error("Authentication failed. Please try again.");
         }
-
-        // Check if account is active
-        if (user.status === "SUSPENDED" || user.status === "CLOSED") {
-          throw new Error("Account is not active. Please contact support.");
-        }
-
-        // Reset failed login count and update last login
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            failedLoginCount: 0,
-            lockedUntil: null,
-            lastLoginAt: new Date(),
-          },
-        });
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.investor?.name ?? "User",
-          role: user.role,
-          status: user.status,
-          investorId: user.investor?.id,
-          investorCode: user.investor?.investorCode,
-        };
       },
     }),
   ],

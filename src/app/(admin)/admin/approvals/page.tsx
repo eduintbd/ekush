@@ -66,41 +66,41 @@ export default function ApprovalsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Approval Queue</h1>
-        <p className="text-sm text-gray-500">Review and approve/reject pending requests (maker-checker)</p>
+        <h1 className="text-[20px] font-semibold text-text-dark font-rajdhani">Approval Queue</h1>
+        <p className="text-[13px] text-text-body">Review and approve/reject pending requests (maker-checker)</p>
       </div>
 
       {/* Pending Approvals */}
-      <Card>
+      <Card className="shadow-card rounded-[10px]">
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
+          <CardTitle className="text-[16px] font-semibold font-rajdhani text-text-dark flex items-center gap-2">
             <Clock className="w-4 h-4" /> Pending Approvals ({pending.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
+            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-text-muted" /></div>
           ) : pending.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center py-8">No pending approvals.</p>
+            <p className="text-text-body text-sm text-center py-8">No pending approvals.</p>
           ) : (
             <div className="space-y-3">
               {pending.map((a) => (
-                <div key={a.id} className="border rounded-lg p-4 space-y-3">
+                <div key={a.id} className="border border-input-border rounded-[10px] p-4 space-y-3">
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <Badge variant="warning">PENDING</Badge>
                         <Badge variant="outline">{a.entityType}</Badge>
                       </div>
-                      <p className="text-sm text-gray-700">{a.notes}</p>
+                      <p className="text-sm text-text-dark">{a.notes}</p>
                       {a.details && (
-                        <div className="mt-2 text-xs text-gray-500 space-y-0.5">
+                        <div className="mt-2 text-xs text-text-body space-y-0.5">
                           <p>Investor: {a.details.investor?.name} ({a.details.investor?.investorCode})</p>
                           <p>Fund: {a.details.fund?.code} | Direction: {a.details.direction} | Amount: ৳{Number(a.details.amount).toLocaleString("en-IN")}</p>
                           <p>Units: {Number(a.details.units).toFixed(4)} @ NAV {Number(a.details.nav).toFixed(4)}</p>
                         </div>
                       )}
-                      <p className="text-xs text-gray-400 mt-1">Submitted: {new Date(a.createdAt).toLocaleString("en-GB")}</p>
+                      <p className="text-xs text-text-muted mt-1">Submitted: {new Date(a.createdAt).toLocaleString("en-GB")}</p>
                     </div>
                   </div>
 
@@ -110,7 +110,7 @@ export default function ApprovalsPage() {
                       placeholder="Rejection reason (optional)"
                       value={rejectNotes[a.id] || ""}
                       onChange={(e) => setRejectNotes({ ...rejectNotes, [a.id]: e.target.value })}
-                      className="flex-1 h-8 rounded border border-gray-300 px-2 text-sm"
+                      className="flex-1 h-8 rounded-[10px] border border-input-border bg-input-bg px-2 text-sm"
                     />
                     <Button
                       size="sm"
@@ -138,23 +138,23 @@ export default function ApprovalsPage() {
       </Card>
 
       {/* Processed */}
-      <Card>
+      <Card className="shadow-card rounded-[10px]">
         <CardHeader>
-          <CardTitle className="text-base">Recently Processed</CardTitle>
+          <CardTitle className="text-[16px] font-semibold font-rajdhani text-text-dark">Recently Processed</CardTitle>
         </CardHeader>
         <CardContent>
           {processed.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center py-6">No processed approvals yet.</p>
+            <p className="text-text-body text-sm text-center py-6">No processed approvals yet.</p>
           ) : (
             <div className="space-y-2">
               {processed.slice(0, 20).map((a) => (
-                <div key={a.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={a.id} className="flex items-center justify-between p-3 bg-page-bg rounded-[10px]">
                   <div>
                     <div className="flex items-center gap-2">
                       <Badge variant={statusVariant(a.status)}>{a.status}</Badge>
-                      <span className="text-sm text-gray-700">{a.notes}</span>
+                      <span className="text-sm text-text-dark">{a.notes}</span>
                     </div>
-                    <p className="text-xs text-gray-400 mt-0.5">{new Date(a.createdAt).toLocaleString("en-GB")}</p>
+                    <p className="text-xs text-text-muted mt-0.5">{new Date(a.createdAt).toLocaleString("en-GB")}</p>
                   </div>
                 </div>
               ))}

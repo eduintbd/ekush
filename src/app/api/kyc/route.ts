@@ -61,25 +61,27 @@ export async function POST(req: NextRequest) {
     selfieUrl = `uploads/kyc/${investorId}/${fileName}`;
   }
 
-  const record = await prisma.kycRecord.create({
-    data: {
-      investorId,
-      type,
-      status: "PENDING",
-      documentUrl,
-      selfieUrl,
-    },
-  });
-
-  await prisma.notification.create({
-    data: {
-      userId,
-      type: "KYC",
-      title: "KYC Document Submitted",
-      message: `Your ${type} document has been submitted for verification.`,
-      link: "/profile",
-    },
-  });
+  // Create KYC record and notification in parallel
+  const [record] = await Promise.all([
+    prisma.kycRecord.create({
+      data: {
+        investorId,
+        type,
+        status: "PENDING",
+        documentUrl,
+        selfieUrl,
+      },
+    }),
+    prisma.notification.create({
+      data: {
+        userId,
+        type: "KYC",
+        title: "KYC Document Submitted",
+        message: `Your ${type} document has been submitted for verification.`,
+        link: "/profile",
+      },
+    }),
+  ]);
 
   return NextResponse.json(record);
 }

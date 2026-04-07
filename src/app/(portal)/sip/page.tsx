@@ -81,66 +81,66 @@ export default function SipPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">SIP Management</h1>
-          <p className="text-sm text-gray-500">Manage your Systematic Investment Plans</p>
+          <h1 className="text-[20px] font-semibold text-text-dark font-rajdhani">SIP Management</h1>
+          <p className="text-sm text-text-body">Manage your Systematic Investment Plans</p>
         </div>
-        <Button onClick={() => setShowCreate(!showCreate)} className="bg-[#1e3a5f] hover:bg-[#2d5a8f] text-white">
+        <Button onClick={() => setShowCreate(!showCreate)} className="bg-ekush-orange hover:bg-ekush-orange/90 text-white rounded-[5px] text-[13px]">
           <Plus className="w-4 h-4 mr-1" /> New SIP
         </Button>
       </div>
 
       {/* Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+        <Card className="rounded-[10px] shadow-card">
           <CardContent className="p-4">
-            <p className="text-xs text-gray-500">Active Plans</p>
-            <p className="text-2xl font-bold text-green-600">{activePlans.length}</p>
+            <p className="text-xs text-text-body">Active Plans</p>
+            <p className="text-2xl font-bold text-green-600 font-rajdhani">{activePlans.length}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="rounded-[10px] shadow-card">
           <CardContent className="p-4">
-            <p className="text-xs text-gray-500">Monthly Investment</p>
-            <p className="text-2xl font-bold">৳{totalMonthly.toLocaleString("en-IN")}</p>
+            <p className="text-xs text-text-body">Monthly Investment</p>
+            <p className="text-2xl font-bold text-text-dark font-rajdhani">৳{totalMonthly.toLocaleString("en-IN")}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="rounded-[10px] shadow-card">
           <CardContent className="p-4">
-            <p className="text-xs text-gray-500">Total Plans</p>
-            <p className="text-2xl font-bold">{plans.length}</p>
+            <p className="text-xs text-text-body">Total Plans</p>
+            <p className="text-2xl font-bold text-text-dark font-rajdhani">{plans.length}</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Create Form */}
       {showCreate && (
-        <Card className="border-blue-200">
+        <Card className="border-ekush-orange/30 rounded-[10px] shadow-card">
           <CardHeader>
-            <CardTitle className="text-base">Create New SIP</CardTitle>
+            <CardTitle className="text-[16px] font-semibold text-text-dark">Create New SIP</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Fund</label>
-                <select value={form.fundCode} onChange={(e) => setForm({ ...form, fundCode: e.target.value })} className="w-full h-9 rounded-md border border-gray-300 px-3 text-sm" required>
+                <label className="text-sm font-medium text-text-label block mb-1">Fund</label>
+                <select value={form.fundCode} onChange={(e) => setForm({ ...form, fundCode: e.target.value })} className="w-full h-[50px] rounded-[5px] border border-input-border bg-input-bg px-3 text-sm" required>
                   <option value="">Select fund...</option>
                   {funds.map(f => <option key={f.code} value={f.code}>{f.code} - {f.name}</option>)}
                 </select>
               </div>
               <Input label="Amount (BDT)" type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="5000" min="500" required />
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Frequency</label>
-                <select value={form.frequency} onChange={(e) => setForm({ ...form, frequency: e.target.value })} className="w-full h-9 rounded-md border border-gray-300 px-3 text-sm">
+                <label className="text-sm font-medium text-text-label block mb-1">Frequency</label>
+                <select value={form.frequency} onChange={(e) => setForm({ ...form, frequency: e.target.value })} className="w-full h-[50px] rounded-[5px] border border-input-border bg-input-bg px-3 text-sm">
                   <option value="MONTHLY">Monthly</option>
                   <option value="QUARTERLY">Quarterly</option>
                 </select>
               </div>
               <Input label="Debit Day" type="number" value={form.debitDay} onChange={(e) => setForm({ ...form, debitDay: e.target.value })} min="1" max="28" />
               <div className="md:col-span-2 flex gap-2">
-                <Button type="submit" disabled={loading} className="bg-[#1e3a5f] hover:bg-[#2d5a8f] text-white">
+                <Button type="submit" disabled={loading} className="bg-ekush-orange hover:bg-ekush-orange/90 text-white rounded-[5px] text-[13px]">
                   {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
                   Create SIP
                 </Button>
-                <Button type="button" onClick={() => setShowCreate(false)} variant="outline">Cancel</Button>
+                <Button type="button" onClick={() => setShowCreate(false)} variant="outline" className="rounded-[5px] text-[13px]">Cancel</Button>
               </div>
             </form>
           </CardContent>
@@ -148,27 +148,27 @@ export default function SipPage() {
       )}
 
       {/* Plans List */}
-      <Card>
+      <Card className="rounded-[10px] shadow-card">
         <CardHeader>
-          <CardTitle className="text-base">Your SIP Plans</CardTitle>
+          <CardTitle className="text-[16px] font-semibold text-text-dark">Your SIP Plans</CardTitle>
         </CardHeader>
         <CardContent>
           {plans.length === 0 ? (
-            <div className="text-center py-10 text-gray-500">
-              <RefreshCw className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+            <div className="text-center py-10 text-text-body">
+              <RefreshCw className="w-10 h-10 text-text-muted mx-auto mb-3" />
               <p className="text-sm">No SIP plans yet. Create one to start investing regularly.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {plans.map((plan) => (
-                <div key={plan.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div key={plan.id} className="flex items-center justify-between p-4 bg-page-bg rounded-[10px]">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="font-semibold text-sm">{plan.fund.code}</p>
+                      <p className="font-semibold text-sm text-text-dark">{plan.fund.code}</p>
                       <Badge variant={statusVariant(plan.status)}>{plan.status}</Badge>
                     </div>
-                    <p className="text-xs text-gray-500">{plan.fund.name}</p>
-                    <div className="flex gap-4 mt-1 text-xs text-gray-600">
+                    <p className="text-xs text-text-body">{plan.fund.name}</p>
+                    <div className="flex gap-4 mt-1 text-xs text-text-body">
                       <span>৳{Number(plan.amount).toLocaleString("en-IN")} / {plan.frequency.toLowerCase()}</span>
                       <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Day {plan.debitDay}</span>
                       <span>Since {new Date(plan.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}</span>
@@ -176,17 +176,17 @@ export default function SipPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {plan.status === "ACTIVE" && (
-                      <Button size="sm" variant="outline" onClick={() => handleAction(plan.id, "pause")} disabled={actionLoading === plan.id}>
+                      <Button size="sm" variant="outline" onClick={() => handleAction(plan.id, "pause")} disabled={actionLoading === plan.id} className="rounded-[5px]">
                         {actionLoading === plan.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Pause className="w-3 h-3" />}
                       </Button>
                     )}
                     {plan.status === "PAUSED" && (
-                      <Button size="sm" variant="outline" onClick={() => handleAction(plan.id, "resume")} disabled={actionLoading === plan.id}>
+                      <Button size="sm" variant="outline" onClick={() => handleAction(plan.id, "resume")} disabled={actionLoading === plan.id} className="rounded-[5px]">
                         {actionLoading === plan.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
                       </Button>
                     )}
                     {plan.status !== "CANCELLED" && (
-                      <Button size="sm" variant="destructive" onClick={() => { if (confirm("Cancel this SIP?")) handleAction(plan.id, "cancel"); }} disabled={actionLoading === plan.id}>
+                      <Button size="sm" variant="destructive" onClick={() => { if (confirm("Cancel this SIP?")) handleAction(plan.id, "cancel"); }} disabled={actionLoading === plan.id} className="rounded-[5px]">
                         <X className="w-3 h-3" />
                       </Button>
                     )}
