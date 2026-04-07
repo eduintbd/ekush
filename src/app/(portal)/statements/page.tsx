@@ -1,11 +1,13 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { formatBDT } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { AllocationChart } from "@/components/dashboard/allocation-chart";
 import { DownloadPortfolioStatement } from "@/components/statements/pdf-buttons";
+import {
+  PortfolioStatementsTable,
+  type HoldingRow,
+} from "@/components/statements/portfolio-statements-table";
 
 async function getHoldings(investorId: string) {
   return prisma.fundHolding.findMany({
@@ -24,7 +26,7 @@ export default async function StatementsPage() {
 
   const holdings = await getHoldings(investorId);
 
-  // Chart data
+  // Build chart data
   let totalMarketValue = 0;
   const fundsForChart = holdings.map((h) => {
     const mv = Number(h.totalMarketValue);
@@ -40,19 +42,49 @@ export default async function StatementsPage() {
     f.weight = totalMarketValue > 0 ? (f.marketValue / totalMarketValue) * 100 : 0;
   });
 
-  // Capital gains
-  const capitalGains = holdings.map((h) => ({
-    fundCode: h.fund.code,
-    fundName: h.fund.name,
-    realizedGain: Number(h.totalRealizedGain),
-    unrealizedGain: Number(h.totalUnrealizedGain),
-    costValue: Number(h.totalCostValueCurrent),
-    marketValue: Number(h.totalMarketValue),
-  }));
-  const totalRealized = capitalGains.reduce((s, h) => s + h.realizedGain, 0);
-  const totalUnrealized = capitalGains.reduce((s, h) => s + h.unrealizedGain, 0);
-  const totalCost = capitalGains.reduce((s, h) => s + h.costValue, 0);
-  const totalMv = capitalGains.reduce((s, h) => s + h.marketValue, 0);
+  // Build expandable row data with computed returns
+  const now = Date.now();
+  const tableRows: HoldingRow[] = holdings.map((h) => {
+    const costValue = Number(h.totalCostValueCurrent);
+    const marketValue = Number(h.totalMarketValue);
+    const realizedGain = Number(h.totalRealizedGain);
+    const unrealizedGain = Number(h.totalUnrealizedGain);
+    const grossDividend = Number(h.grossDividend);
+
+    // Holding period return: (mv + realized + dividends - cost) / cost
+    const hpr =
+      costValue > 0
+        ? ((marketValue + realizedGain + grossDividend - costValue) / costValue) * 100
+        : 0;
+
+    // Annualized return based on years held
+    const yearsHeld = Math.max(
+      0.01,
+      (now - new Date(h.createdAt).getTime()) / (365.25 * 24 * 60 * 60 * 1000)
+    );
+    const annualized =
+      hpr > -100 ? (Math.pow(1 + hpr / 100, 1 / yearsHeld) - 1) * 100 : 0;
+
+    return {
+      id: h.id,
+      fundCode: h.fund.code,
+      fundName: h.fund.name,
+      totalCurrentUnits: Number(h.totalCurrentUnits),
+      sipCurrentUnits: Number(h.sipCurrentUnits),
+      avgCost: Number(h.avgCost),
+      costValue,
+      sipMarketValue: Number(h.sipMarketValue),
+      nav: Number(h.nav),
+      marketValue,
+      grossDividend,
+      realizedGain,
+      unrealizedGain,
+      // Schema doesn't track per-tax-period gain — placeholder until reporting period field exists
+      realizedGainTaxPeriod: 0,
+      holdingPeriodReturn: hpr,
+      annualizedReturn: annualized,
+    };
+  });
 
   return (
     <div className="space-y-8">
@@ -62,44 +94,7 @@ export default async function StatementsPage() {
           <CardTitle className="text-[16px]">Portfolio Statements</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-0 hover:bg-transparent">
-                <TableHead>Fund</TableHead>
-                <TableHead className="text-right">Cost Value</TableHead>
-                <TableHead className="text-right">Market Value</TableHead>
-                <TableHead className="text-right">Realized Gain</TableHead>
-                <TableHead className="text-right">Unrealized Gain</TableHead>
-                <TableHead className="text-right">Total Gain</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {capitalGains.map((cg) => (
-                <TableRow key={cg.fundCode}>
-                  <TableCell className="font-medium text-text-dark">{cg.fundCode}</TableCell>
-                  <TableCell className="text-right">{formatBDT(cg.costValue)}</TableCell>
-                  <TableCell className="text-right">{formatBDT(cg.marketValue)}</TableCell>
-                  <TableCell className={`text-right ${cg.realizedGain >= 0 ? "text-green-500" : "text-red-500"}`}>
-                    {formatBDT(cg.realizedGain)}
-                  </TableCell>
-                  <TableCell className={`text-right ${cg.unrealizedGain >= 0 ? "text-green-500" : "text-red-500"}`}>
-                    {formatBDT(cg.unrealizedGain)}
-                  </TableCell>
-                  <TableCell className={`text-right font-semibold ${(cg.realizedGain + cg.unrealizedGain) >= 0 ? "text-green-500" : "text-red-500"}`}>
-                    {formatBDT(cg.realizedGain + cg.unrealizedGain)}
-                  </TableCell>
-                </TableRow>
-              ))}
-              <TableRow className="bg-page-bg">
-                <TableCell className="font-semibold text-text-dark">Total</TableCell>
-                <TableCell className="text-right font-semibold">{formatBDT(totalCost)}</TableCell>
-                <TableCell className="text-right font-semibold">{formatBDT(totalMv)}</TableCell>
-                <TableCell className={`text-right font-semibold ${totalRealized >= 0 ? "text-green-500" : "text-red-500"}`}>{formatBDT(totalRealized)}</TableCell>
-                <TableCell className={`text-right font-semibold ${totalUnrealized >= 0 ? "text-green-500" : "text-red-500"}`}>{formatBDT(totalUnrealized)}</TableCell>
-                <TableCell className={`text-right font-semibold ${(totalRealized + totalUnrealized) >= 0 ? "text-green-500" : "text-red-500"}`}>{formatBDT(totalRealized + totalUnrealized)}</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+          <PortfolioStatementsTable holdings={tableRows} />
         </CardContent>
       </Card>
 
