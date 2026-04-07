@@ -60,21 +60,21 @@ export default async function DashboardPage() {
         />
         <ActionCard
           href="/statements"
-          label="Your Statement"
+          label="Portfolio Management"
           icon={PieChart}
           iconColor="#2DAAB8"
           iconBg="#E8F8FA"
         />
         <ActionCard
           href="/transactions"
-          label="Transactions"
+          label="Transaction History"
           icon={FileText}
           iconColor="#7C3AED"
           iconBg="#F3EFFE"
         />
         <ActionCard
           href="/profile"
-          label="Profile"
+          label="Beneficiary Management"
           icon={UserPen}
           iconColor="#0EA5E9"
           iconBg="#E0F2FE"
