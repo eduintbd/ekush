@@ -1,14 +1,16 @@
 import { cn } from "@/lib/utils";
-import { Info, CreditCard, CheckCircle, Trophy } from "lucide-react";
+import { Info, CreditCard, CheckCircle, Trophy, type LucideIcon } from "lucide-react";
 
 interface StepIndicatorProps {
   currentStep: number;
   steps: string[];
+  icons?: LucideIcon[];
 }
 
-const stepIcons = [Info, CreditCard, CheckCircle, Trophy];
+const defaultIcons = [Info, CreditCard, CheckCircle, Trophy];
 
-export function StepIndicator({ currentStep, steps }: StepIndicatorProps) {
+export function StepIndicator({ currentStep, steps, icons }: StepIndicatorProps) {
+  const stepIcons = icons || defaultIcons;
   return (
     <div className="flex items-center justify-center gap-0 mb-8">
       {steps.map((label, idx) => {

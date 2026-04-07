@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StepIndicator } from "@/components/ui/step-indicator";
-import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle, Info, Trophy } from "lucide-react";
 
 interface Holding {
   fund: { code: string; name: string; currentNav: number };
@@ -16,7 +16,8 @@ interface Holding {
   totalMarketValue: number;
 }
 
-const STEPS = ["Information", "Payment", "Confirm", "Success"];
+const STEPS = ["Information", "Confirm", "Success"];
+const STEP_ICONS = [Info, CheckCircle, Trophy];
 
 export default function SellPage() {
   const router = useRouter();
@@ -59,7 +60,7 @@ export default function SellPage() {
         setStep(0);
       } else {
         setResult(data);
-        setStep(3);
+        setStep(2);
       }
     } catch {
       setError("Network error. Please try again.");
@@ -73,7 +74,7 @@ export default function SellPage() {
     <div className="max-w-3xl mx-auto space-y-6">
       <h1 className="text-[22px] font-semibold text-text-dark font-rajdhani text-center">Sell Units</h1>
 
-      <StepIndicator currentStep={step} steps={STEPS} />
+      <StepIndicator currentStep={step} steps={STEPS} icons={STEP_ICONS} />
 
       {error && (
         <div className="flex items-center gap-2 bg-red-50 text-red-600 p-3 rounded-[10px] text-sm">
@@ -165,29 +166,8 @@ export default function SellPage() {
         </Card>
       )}
 
-      {/* Step 1: Payment */}
+      {/* Step 1: Confirm */}
       {step === 1 && (
-        <Card>
-          <CardContent className="p-8">
-            <h2 className="text-[16px] font-semibold text-text-dark font-rajdhani mb-6">Payment Method</h2>
-            <div className="space-y-4">
-              <div className="p-4 border border-ekush-orange bg-ekush-orange/5 rounded-[10px] flex items-center gap-3">
-                <div className="w-4 h-4 rounded-full border-2 border-ekush-orange flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-ekush-orange" />
-                </div>
-                <span className="text-[14px] text-text-dark font-medium">Bank Transfer</span>
-              </div>
-            </div>
-            <div className="mt-8 flex justify-between">
-              <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
-              <Button onClick={() => setStep(2)}>Next Step</Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 2: Confirm */}
-      {step === 2 && (
         <Card>
           <CardContent className="p-8">
             <h2 className="text-[16px] font-semibold text-text-dark font-rajdhani mb-6">Confirm Redemption</h2>
@@ -216,7 +196,7 @@ export default function SellPage() {
               </div>
             </div>
             <div className="mt-8 flex justify-between">
-              <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
+              <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
               <Button onClick={handleSubmit} disabled={loading} className="bg-red-500 border-red-500 hover:bg-white hover:text-red-500">
                 {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                 Confirm Sell Order
@@ -226,8 +206,8 @@ export default function SellPage() {
         </Card>
       )}
 
-      {/* Step 3: Success */}
-      {step === 3 && result && (
+      {/* Step 2: Success */}
+      {step === 2 && result && (
         <Card>
           <CardContent className="p-8 text-center">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
