@@ -98,8 +98,9 @@ export function DownloadTaxCertificate({ certId, fundCode }: { certId: string; f
   };
 
   return (
-    <Button onClick={handleDownload} disabled={loading} variant="outline" size="sm">
-      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+    <Button onClick={handleDownload} disabled={loading} size="sm" className="bg-[#2DAAB8] hover:bg-[#259BA8] text-white">
+      {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Download className="w-4 h-4 mr-2" />}
+      Download Tax Certificate
     </Button>
   );
 }
