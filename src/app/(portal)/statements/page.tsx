@@ -107,7 +107,7 @@ export default async function StatementsPage() {
       {/* Fund Weight chart */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-[16px]">Fund weight</CardTitle>
+          <CardTitle className="text-[16px]">Fund Allocation</CardTitle>
         </CardHeader>
         <CardContent>
           <AllocationChart funds={fundsForChart} />

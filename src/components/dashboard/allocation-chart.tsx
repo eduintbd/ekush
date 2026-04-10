@@ -10,7 +10,7 @@ interface Fund {
   weight: number;
 }
 
-const COLORS = ["#F27023", "#e85d04", "#ffcfb2"];
+const COLORS = ["#E53935", "#43A047", "#1E88E5", "#FB8C00", "#8E24AA"];
 
 const RechartsChart = dynamic(
   () =>
