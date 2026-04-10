@@ -159,11 +159,6 @@ export default function GoalsPage() {
 
       {/* ─── Investment Calculator ─── */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-[16px] flex items-center gap-2">
-            <Target className="w-4 h-4 text-ekush-orange" /> Investment Calculator
-          </CardTitle>
-        </CardHeader>
         <CardContent>
           {/* Mode is fixed to "goal" */}
 
