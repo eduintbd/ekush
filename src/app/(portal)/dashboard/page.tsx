@@ -11,6 +11,7 @@ import {
   UserPen,
   Award,
   Gift,
+  Target,
 } from "lucide-react";
 
 async function getFunds() {
@@ -112,6 +113,13 @@ export default async function DashboardPage() {
           icon={Gift}
           iconColor="#DB2777"
           iconBg="#FCE7F3"
+        />
+        <ActionCard
+          href="/goals"
+          label="Set My Goals"
+          icon={Target}
+          iconColor="#EA580C"
+          iconBg="#FFF7ED"
         />
       </div>
     </div>
