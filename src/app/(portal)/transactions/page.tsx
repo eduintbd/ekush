@@ -103,7 +103,6 @@ export default async function TransactionsPage({
                 <TableRow className="border-0 hover:bg-transparent">
                   <TableHead>No.</TableHead>
                   <TableHead>Txn date</TableHead>
-                  <TableHead>Txn ID</TableHead>
                   <TableHead>Fund</TableHead>
                   <TableHead>Txn type</TableHead>
                   <TableHead className="text-right">No. of units</TableHead>
@@ -116,7 +115,6 @@ export default async function TransactionsPage({
                   <TableRow key={tx.id}>
                     <TableCell className="text-text-dark">{(page - 1) * PAGE_SIZE + idx + 1}</TableCell>
                     <TableCell className="whitespace-nowrap text-text-dark">{formatDate(tx.orderDate)}</TableCell>
-                    <TableCell className="font-mono text-[12px] text-text-body">{tx.id.slice(0, 16)}</TableCell>
                     <TableCell className="text-text-dark">{tx.fund.code}</TableCell>
                     <TableCell>
                       <span className={tx.direction === "SELL" ? "text-ekush-orange font-medium" : "text-text-dark font-medium"}>
