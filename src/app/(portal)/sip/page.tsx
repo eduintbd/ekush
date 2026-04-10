@@ -25,14 +25,20 @@ export default function SipPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ fundCode: "", amount: "", frequency: "MONTHLY", debitDay: "5", tenure: "5" });
   const [loading, setLoading] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   const fetchPlans = () => fetch("/api/sip").then(r => r.json()).then(setPlans).catch(() => {});
   const fetchFunds = () => fetch("/api/funds").then(r => r.json()).then(setFunds).catch(() => {});
 
   useEffect(() => { fetchPlans(); fetchFunds(); }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreateClick = (e: React.FormEvent) => {
     e.preventDefault();
+    setShowTerms(true);
+  };
+
+  const handleConfirmCreate = async () => {
+    setShowTerms(false);
     setLoading(true);
     try {
       const res = await fetch("/api/sip", {
@@ -94,7 +100,7 @@ export default function SipPage() {
             <CardTitle className="text-[16px] font-semibold text-text-dark">Create New SIP</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={handleCreateClick} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-text-label block mb-1">Fund</label>
                 <select value={form.fundCode} onChange={(e) => setForm({ ...form, fundCode: e.target.value })} className="w-full h-[50px] rounded-[5px] border border-input-border bg-input-bg px-3 text-sm" required>
@@ -146,6 +152,52 @@ export default function SipPage() {
             </form>
           </CardContent>
         </Card>
+      )}
+
+      {/* Terms & Conditions Modal */}
+      {showTerms && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setShowTerms(false)} />
+          <div className="fixed inset-4 md:inset-10 lg:inset-20 z-50 bg-white rounded-[10px] shadow-lg flex flex-col overflow-hidden">
+            <div className="bg-ekush-orange px-6 py-4">
+              <h2 className="text-white text-[18px] font-bold">Terms and Conditions</h2>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-5 text-[14px] text-text-dark leading-relaxed space-y-4">
+              <p>
+                Transactions under this authorization will be subject to the BEFTN operating rules of Bangladesh Bank. All the BEFTN guidelines from Bangladesh Bank will be imposed on executing the above instruction, as applicable from time to time. Ekush Wealth Management Limited contains all the rights to change/modify/amend the terms and conditions. The guidelines of Bangladesh Bank regarding BEFTN shall govern the following terms and conditions:
+              </p>
+              <ol className="list-decimal pl-5 space-y-3">
+                <li>BEFTN Debit facility for installment payment can be availed after the SIP is accepted and is in force. Payments other than Installment or arrears of installment (due to the previous months) should be paid via/cheque/bank draft/pay order/online transfer;</li>
+                <li>Installment amount will be debited on the 5th, 15th and 26th day of each month. Investor will choose a date as per their convenient. If the day is a weekend/ holiday, installment amount will be debited on the next working day.</li>
+                <li>This authorization form must reach Ekush Wealth Management Limited at least 15 (fifteen) working days before the date on which it is to be activated. If the payment instruction date falls on a weekend day or a public holiday, the same may be effective on the next working day.</li>
+                <li>This instruction shall stay fully in force and result till otherwise suggested in writing by the account holder and such endorsement should be communicated to and received by a minimum of 5 (five) working days before the next installment payment is due. Any such amendment/cancellation will not release the investor from liability to the bank arising on account of the bank having executed the instruction before receipt of such amendments/cancellation.</li>
+                <li>Investors should ensure that sufficient funds are available in the bank at the time of debit and this authorization is not dishonored. Sometimes it is possible that due to some technical or other reason, installment is not debited on the debit date and is delayed for few days. Please ensure availability of the funds for at least 5 (five) working days after the debit date to avoid dishonors. Ekush Funds will not be responsible for any dishonors raised by the bank and any dispute regarding the same should be taken up with the bank only.</li>
+                <li>In case this Authorization is dishonored by the bank, installment for the due date(s), of the dishonored BEFTN debit for the previous month has to be paid in Cheque/ Pay order/ Demand Draft/ Online fund transfer by the investor. Any issue regarding dishonor of his authorization is to be taken up with the bank only. However, Ekush may instruct the bank for BEFTN debit of the same installment/s with the consent of the investor.</li>
+                <li>Any queries, questions, comments etc. with regards to Ekush Funds and payment amount will have to raise to Ekush Wealth Management Limited and payments to the bank with regard to the settlement of amounts paid in this regard are committed and not deferrable for any reason whatsoever. The transaction appearing on the account statement will be the proof of payment.</li>
+                <li>Under this instruction, the investor cannot dispute regarding the payment to Ekush Funds debited from his/her bank account. If any excess or less than the correct amount is debited, the investor will have to contact to Ekush Wealth Management Limited for clarification. Any type of refund from Ekush Funds on account of this instruction will be settled by Ekush Funds to its investor.</li>
+                <li>No SIP installment receipt will be issued by Ekush Funds for BEFTN debit Payments. An annual statement or certificate of SIP payments, as applicable, may be obtained from Ekush Wealth Management Limited upon written request of the investor.</li>
+                <li>After maturity the investor may- a) continue the installment amount for another tenure b) keep the matured amount as Non-SIP investment c) transfer the matured amount to the designated bank account of the investor.</li>
+                <li>For the auto-renewal option, the investor has to submit another &quot;Auto debit Instruction Form&quot; having validity for another specific period.</li>
+                <li>There will be no minimum lot size of units under SIP. Any remaining fraction amount will be converted when it sums up to one unit.</li>
+              </ol>
+            </div>
+            <div className="px-6 py-4 border-t border-input-border flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowTerms(false)}
+                className="rounded-[5px] text-[13px] bg-red-500 text-white border-red-500 hover:bg-red-600"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmCreate}
+                className="rounded-[5px] text-[13px] bg-[#2DAAB8] border-[#2DAAB8] hover:bg-[#259BA8] text-white"
+              >
+                OK
+              </Button>
+            </div>
+          </div>
+        </>
       )}
 
     </div>
