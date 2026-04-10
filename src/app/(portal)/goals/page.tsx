@@ -165,29 +165,7 @@ export default function GoalsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Mode Toggle */}
-          <div className="flex gap-3 mb-6">
-            <button
-              onClick={() => setMode("goal")}
-              className={`px-5 py-2 rounded-[5px] text-[13px] font-medium transition-colors ${
-                mode === "goal"
-                  ? "bg-ekush-orange text-white"
-                  : "bg-page-bg text-text-body hover:bg-gray-200"
-              }`}
-            >
-              I Know My Goal
-            </button>
-            <button
-              onClick={() => setMode("invest")}
-              className={`px-5 py-2 rounded-[5px] text-[13px] font-medium transition-colors ${
-                mode === "invest"
-                  ? "bg-ekush-orange text-white"
-                  : "bg-page-bg text-text-body hover:bg-gray-200"
-              }`}
-            >
-              I Want to Invest
-            </button>
-          </div>
+          {/* Mode is fixed to "goal" */}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Inputs */}
