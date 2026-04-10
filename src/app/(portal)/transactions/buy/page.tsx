@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StepIndicator } from "@/components/ui/step-indicator";
-import { Loader2, AlertCircle, CheckCircle, Copy, Check, Upload } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle, Copy, Check, Upload, FileDown } from "lucide-react";
 
 interface Fund { code: string; name: string; currentNav: number; }
 
@@ -264,7 +264,20 @@ export default function BuyPage() {
       {step === 2 && (
         <Card>
           <CardContent className="p-8">
-            <h2 className="text-[16px] font-semibold text-text-dark font-rajdhani mb-6">Confirm Your Order</h2>
+            <h2 className="text-[16px] font-semibold text-text-dark font-rajdhani mb-2">Confirmation</h2>
+            <p className="text-[14px] text-text-body mb-4">Please confirm to complete the transaction</p>
+
+            {/* Form Preview Button */}
+            <div className="mb-6 text-center">
+              <a
+                href={`/api/forms/registration?fundCode=${encodeURIComponent(selectedFund)}&fundName=${encodeURIComponent(fund?.name || "")}&amount=${actualAmount}&units=${Math.round(estimatedUnits)}&nav=${nav.toFixed(4)}&dividend=${dividendOption}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-[#2DAAB8] text-[#2DAAB8] rounded-[5px] text-[14px] font-medium hover:bg-[#2DAAB8] hover:text-white transition-colors"
+              >
+                Your form preview <FileDown className="w-4 h-4" />
+              </a>
+            </div>
             <div className="bg-page-bg rounded-[10px] p-6 space-y-3">
               <div className="flex justify-between text-[14px]">
                 <span className="text-text-body">Fund</span>
