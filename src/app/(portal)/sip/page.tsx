@@ -23,7 +23,7 @@ export default function SipPage() {
   const [plans, setPlans] = useState<SipPlan[]>([]);
   const [funds, setFunds] = useState<Fund[]>([]);
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ fundCode: "", amount: "", frequency: "MONTHLY", debitDay: "5" });
+  const [form, setForm] = useState({ fundCode: "", amount: "", frequency: "MONTHLY", debitDay: "5", tenure: "5" });
   const [loading, setLoading] = useState(false);
 
   const fetchPlans = () => fetch("/api/sip").then(r => r.json()).then(setPlans).catch(() => {});
@@ -42,7 +42,7 @@ export default function SipPage() {
       });
       if (res.ok) {
         setShowCreate(false);
-        setForm({ fundCode: "", amount: "", frequency: "MONTHLY", debitDay: "5" });
+        setForm({ fundCode: "", amount: "", frequency: "MONTHLY", debitDay: "5", tenure: "5" });
         fetchPlans();
       }
     } finally {
@@ -120,6 +120,20 @@ export default function SipPage() {
                   <option value="5">5th day of the month</option>
                   <option value="15">15th day of the month</option>
                   <option value="26">26th day of the month</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-text-label block mb-1">Tenure</label>
+                <select
+                  value={form.tenure}
+                  onChange={(e) => setForm({ ...form, tenure: e.target.value })}
+                  className="w-full h-[50px] rounded-[5px] border border-input-border bg-input-bg px-3 text-sm"
+                >
+                  <option value="3">3 Year</option>
+                  <option value="5">5 Year</option>
+                  <option value="7">7 Year</option>
+                  <option value="10">10 Year</option>
+                  <option value="12">12 Year</option>
                 </select>
               </div>
               <div className="md:col-span-2 flex gap-2">
