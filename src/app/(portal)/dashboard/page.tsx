@@ -40,7 +40,7 @@ export default async function DashboardPage() {
       {/* NAV trend charts — one per fund */}
       <div>
         <h2 className="text-[16px] font-semibold text-text-dark font-rajdhani mb-4">
-          NAV per Unit — Market Trend
+          Performance of Ekush Managed Funds
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {funds.map((fund) => (
